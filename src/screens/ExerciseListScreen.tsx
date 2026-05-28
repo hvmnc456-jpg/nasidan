@@ -25,23 +25,23 @@ export default function ExerciseListScreen({
   const currentExercises = exercises.filter(ex => ex.bodyPart === activeTab);
 
   return (
-    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* Header */}
+    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* 헤더 */}
       <div style={{ padding: '20px 20px 0' }}>
         <div className="hdr">
           <button className="btn-icon" onClick={() => setScreen('home')}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
+              <polyline points="15 18 9 12 15 6"/>
             </svg>
           </button>
           <span className="hdr-title">운동 목록</span>
         </div>
       </div>
 
-      {/* Part tabs */}
+      {/* 부위 탭바 */}
       <div className="part-tabs">
         {selectedBodyParts.map(p => {
-          const count = exercises.filter(ex => ex.bodyPart === p && ex.name).length;
+          const count = exercises.filter(e => e.bodyPart === p && e.name).length;
           return (
             <button
               key={p}
@@ -49,41 +49,39 @@ export default function ExerciseListScreen({
               onClick={() => setActiveTab(p)}
             >
               {p}
-              {count > 0 && (
-                <span style={{ marginLeft: 4, fontSize: 11, opacity: 0.7 }}>{count}</span>
-              )}
+              {count > 0 && <span style={{ marginLeft: 4, fontSize: 11, opacity: 0.7 }}>{count}</span>}
             </button>
           );
         })}
       </div>
 
-      {/* Exercise list */}
+      {/* 운동 목록 */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 16px' }}>
         {currentExercises.length === 0 && (
           <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-3)', fontSize: 14 }}>
             + 운동을 추가하세요
           </div>
         )}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 12 }}>
-          {currentExercises.map(ex => (
-            <ExerciseItem
-              key={ex.id}
-              exercise={ex}
-              onUpdate={updateExercise}
-              onRemove={removeExercise}
-            />
-          ))}
-        </div>
+
+        {currentExercises.map(ex => (
+          <ExerciseItem
+            key={ex.id}
+            exercise={ex}
+            onUpdate={updateExercise}
+            onRemove={removeExercise}
+          />
+        ))}
+
         <button className="add-ex-btn" onClick={() => addExercise(activeTab)}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
           운동 추가
         </button>
       </div>
 
-      {/* Start button */}
+      {/* 운동 시작 버튼 */}
       <div style={{ padding: '12px 20px 20px', borderTop: '1px solid var(--border-2)' }}>
         <button className="btn btn-full btn-lime" onClick={startWorkout}>
           운동 시작

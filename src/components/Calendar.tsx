@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import type { WorkoutSession } from '../types';
-import { formatDuration, formatDateFull } from '../utils/time';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const;
 
@@ -13,12 +12,19 @@ function toDateStr(y: number, m: number, d: number): string {
   return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 }
 
-function SessionCard({ session, onDelete }: { session: WorkoutSession; onDelete: () => void }) {
+function formatDuration(secs: number): string {
+  if (!secs || secs <= 0) return '-';
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = secs % 60;
+  if (h > 0) return `${h}시간 ${m}분`;
+  if (m > 0) return `${m}분 ${s}초`;
+  return `${s}초`;
+}
+
+function SessionCard({ session, onDelete }: { session: WorkoutSession; onDelete: (id: string) => void }) {
   const [confirming, setConfirming] = useState(false);
-  const totalVol = session.exercises.reduce(
-    (sum, e) => sum + (e.weight || 0) * (e.sets || 0) * (e.repsPerSet || 0),
-    0,
-  );
+  const totalVol = session.exercises.reduce((sum, e) => sum + (e.weight || 0) * (e.sets || 0) * (e.repsPerSet || 0), 0);
 
   return (
     <div className="card slide-down" style={{ marginBottom: 10 }}>
@@ -32,17 +38,17 @@ function SessionCard({ session, onDelete }: { session: WorkoutSession; onDelete:
           <span className="pill pill-dark">{formatDuration(session.totalDuration)}</span>
           {!confirming ? (
             <button className="btn-icon" onClick={() => setConfirming(true)}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="3 6 5 6 21 6" />
-                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                <path d="M10 11v6M14 11v6" />
-                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                <path d="M10 11v6M14 11v6"/>
+                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
               </svg>
             </button>
           ) : (
             <div style={{ display: 'flex', gap: 4 }}>
               <button className="btn btn-sm btn-ghost" onClick={() => setConfirming(false)}>취소</button>
-              <button className="btn btn-sm btn-red" onClick={onDelete}>삭제</button>
+              <button className="btn btn-sm btn-red" onClick={() => onDelete(session.id)}>삭제</button>
             </div>
           )}
         </div>
@@ -60,9 +66,9 @@ function SessionCard({ session, onDelete }: { session: WorkoutSession; onDelete:
         ))}
       </div>
 
-      <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--border-2)', display: 'flex', gap: 12, alignItems: 'center' }}>
+      <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--border-2)', display: 'flex', gap: 12 }}>
         <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
-          휴식 {session.lapLog.filter(l => l.type === 'rest_start').length}회
+          휴식 {session.lapLog ? session.lapLog.filter(l => l.type === 'rest_start').length : 0}회
         </span>
         {session.avgWorkTime > 0 && (
           <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
@@ -71,7 +77,7 @@ function SessionCard({ session, onDelete }: { session: WorkoutSession; onDelete:
         )}
         {totalVol > 0 && (
           <span style={{ fontSize: 13, color: 'var(--lime)', fontWeight: 700, marginLeft: 'auto' }}>
-            {totalVol.toLocaleString()}kg
+            {totalVol.toLocaleString('ko-KR')}kg
           </span>
         )}
       </div>
@@ -123,21 +129,22 @@ export default function Calendar({ history, deleteSession }: Props) {
   };
 
   const handleDayClick = (day: number) => {
-    const dateStr = toDateStr(year, month, day);
-    if (!sessionsByDate.has(dateStr)) return;
-    setSelectedDate(prev => prev === dateStr ? null : dateStr);
+    const ds = toDateStr(year, month, day);
+    if (!sessionsByDate.has(ds)) return;
+    setSelectedDate(prev => prev === ds ? null : ds);
   };
 
   const selectedSessions = selectedDate ? (sessionsByDate.get(selectedDate) ?? []) : [];
 
   return (
     <div>
+      {/* 캘린더 카드 */}
       <div className="card" style={{ marginBottom: 12 }}>
-        {/* Month navigation */}
+        {/* 월 네비게이션 */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <button className="btn-icon" onClick={goToPrev} aria-label="이전 달">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
+              <polyline points="15 18 9 12 15 6"/>
             </svg>
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -146,36 +153,33 @@ export default function Calendar({ history, deleteSession }: Props) {
           </div>
           <button className="btn-icon" onClick={goToNext} aria-label="다음 달">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6" />
+              <polyline points="9 18 15 12 9 6"/>
             </svg>
           </button>
         </div>
 
-        {/* Day headers */}
+        {/* 요일 헤더 */}
         <div className="cal-grid" style={{ marginBottom: 4 }}>
           {WEEKDAYS.map((d, i) => (
-            <div
-              key={d}
-              className="cal-head-cell"
-              style={{ color: i === 0 ? '#f87171' : i === 6 ? '#93c5fd' : 'var(--text-3)' }}
-            >
+            <div key={d} className="cal-head-cell" style={{
+              color: i === 0 ? '#f87171' : i === 6 ? '#93c5fd' : 'var(--text-3)',
+            }}>
               {d}
             </div>
           ))}
         </div>
 
-        {/* Day cells */}
+        {/* 날짜 그리드 */}
         <div className="cal-grid">
           {cells.map((day, idx) => {
             if (!day) return <div key={`e-${idx}`} />;
-            const dateStr = toDateStr(year, month, day);
-            const isToday = dateStr === todayStr;
-            const hasWorkout = sessionsByDate.has(dateStr);
-            const isSelected = selectedDate === dateStr;
-
+            const ds = toDateStr(year, month, day);
+            const isToday = ds === todayStr;
+            const hasWorkout = sessionsByDate.has(ds);
+            const isSelected = ds === selectedDate;
             return (
               <div
-                key={idx}
+                key={day}
                 className={[
                   'cal-cell',
                   hasWorkout ? 'has-workout' : '',
@@ -184,7 +188,7 @@ export default function Calendar({ history, deleteSession }: Props) {
                 ].filter(Boolean).join(' ')}
                 onClick={() => handleDayClick(day)}
               >
-                <span style={{ fontSize: 14 }}>{day}</span>
+                <span style={{ fontSize: 14, fontWeight: isToday ? 700 : hasWorkout ? 600 : 400 }}>{day}</span>
                 {hasWorkout && !isToday && <div className="dot" />}
               </div>
             );
@@ -192,17 +196,21 @@ export default function Calendar({ history, deleteSession }: Props) {
         </div>
       </div>
 
-      {/* Date detail */}
+      {/* 날짜 상세 드로워 */}
       {selectedDate && selectedSessions.length > 0 && (
-        <div key={selectedDate}>
+        <div key={selectedDate} style={{ marginBottom: 12 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-2)', marginBottom: 10, paddingLeft: 2 }}>
-            {formatDateFull(selectedDate)}
+            {(() => {
+              const [y, m, d] = selectedDate.split('-').map(Number);
+              const dow = WEEKDAYS[new Date(y, m - 1, d).getDay()];
+              return `${y}년 ${m}월 ${d}일 (${dow})`;
+            })()}
           </div>
           {selectedSessions.map(s => (
             <SessionCard
               key={s.id}
               session={s}
-              onDelete={() => { deleteSession(s.id); setSelectedDate(null); }}
+              onDelete={(id) => { deleteSession(id); setSelectedDate(null); }}
             />
           ))}
         </div>

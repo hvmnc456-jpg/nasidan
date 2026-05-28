@@ -7,7 +7,6 @@ export interface WorkoutSession {
   totalDuration: number;
   avgWorkTime: number;
   avgRestTime: number;
-  restCount: number;
 }
 
 export interface Exercise {
