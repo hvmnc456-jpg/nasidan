@@ -148,6 +148,7 @@ export function useWorkout() {
       totalDuration: elapsed,
       avgWorkTime: stats.avgWorkTime,
       avgRestTime: stats.avgRestTime,
+      restCount: finalLog.filter(l => l.type === 'rest_start').length,
     };
 
     saveSession(session);

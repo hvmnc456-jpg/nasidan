@@ -6,41 +6,37 @@ interface Props {
   disabled?: boolean;
 }
 
-function HomeIcon({ active }: { active: boolean }) {
+function IconHome({ active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-      stroke={active ? '#a3e635' : '#52525b'} strokeWidth="2"
-      strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z" />
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z" />
       <path d="M9 21V12h6v9" />
     </svg>
   );
 }
 
-function WorkoutIcon({ active }: { active: boolean }) {
-  const c = active ? '#a3e635' : '#52525b';
+function IconDumbbell({ active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-      stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="10.5" width="3" height="3" rx="1" fill={c} stroke="none" />
-      <rect x="5" y="8.5" width="3" height="7" rx="1" />
-      <rect x="8" y="11" width="8" height="2" rx="1" fill={c} stroke="none" />
-      <rect x="16" y="8.5" width="3" height="7" rx="1" />
-      <rect x="19" y="10.5" width="3" height="3" rx="1" fill={c} stroke="none" />
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="9" width="3" height="6" rx="1" />
+      <rect x="4.5" y="10.5" width="2" height="3" rx="0.5" />
+      <rect x="17.5" y="10.5" width="2" height="3" rx="0.5" />
+      <rect x="19" y="9" width="3" height="6" rx="1" />
+      <line x1="6.5" y1="12" x2="17.5" y2="12" strokeWidth="2.5" />
     </svg>
   );
 }
 
-function DietIcon({ active }: { active: boolean }) {
+function IconDiet({ active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-      stroke={active ? '#a3e635' : '#52525b'} strokeWidth="2"
-      strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 8h1a4 4 0 010 8h-1" />
-      <path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z" />
-      <line x1="6" y1="1" x2="6" y2="4" />
-      <line x1="10" y1="1" x2="10" y2="4" />
-      <line x1="14" y1="1" x2="14" y2="4" />
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="8" y1="2" x2="8" y2="22" />
+      <path d="M5 2v4a3 3 0 0 0 6 0V2" />
+      <path d="M19 2v6.5a2.5 2.5 0 0 1-2.5 2.5H15V22" />
+      <line x1="19" y1="2" x2="15" y2="7" />
     </svg>
   );
 }
@@ -48,35 +44,28 @@ function DietIcon({ active }: { active: boolean }) {
 const TABS: { id: AppTab; label: string }[] = [
   { id: 'home',    label: '홈'  },
   { id: 'workout', label: '운동' },
-  { id: 'diet',   label: '식단' },
+  { id: 'diet',    label: '식단' },
 ];
 
 export default function BottomNav({ tab, setTab, disabled }: Props) {
   return (
-    <div className="flex border-t border-zinc-800 bg-zinc-950">
+    <nav className="nav">
       {TABS.map(t => {
         const active = tab === t.id;
+        const locked = !!disabled && t.id !== tab;
         return (
           <button
             key={t.id}
-            onClick={() => !disabled && setTab(t.id)}
-            className={[
-              'flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors',
-              disabled && t.id !== tab ? 'opacity-40' : '',
-            ].join(' ')}
+            className={`nav-btn${active ? ' active' : ''}${locked ? ' locked' : ''}`}
+            onClick={() => !locked && setTab(t.id)}
           >
-            {t.id === 'home'    && <HomeIcon    active={active} />}
-            {t.id === 'workout' && <WorkoutIcon active={active} />}
-            {t.id === 'diet'   && <DietIcon    active={active} />}
-            <span className={[
-              'text-[10px] font-sans font-medium leading-none',
-              active ? 'text-lime-400' : 'text-zinc-600',
-            ].join(' ')}>
-              {t.label}
-            </span>
+            {t.id === 'home'    && <IconHome    active={active} />}
+            {t.id === 'workout' && <IconDumbbell active={active} />}
+            {t.id === 'diet'    && <IconDiet    active={active} />}
+            <span>{t.label}</span>
           </button>
         );
       })}
-    </div>
+    </nav>
   );
 }

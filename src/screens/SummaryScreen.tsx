@@ -1,5 +1,5 @@
 import type { WorkoutSession, Screen } from '../types';
-import { formatTime, formatDateShort } from '../utils/time';
+import { formatDuration, formatDateShort } from '../utils/time';
 
 interface Props {
   session: WorkoutSession;
@@ -7,17 +7,11 @@ interface Props {
   setScreen: (screen: Screen) => void;
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="bg-zinc-900 rounded-2xl p-4 border border-zinc-800/60">
-      <p className="text-zinc-500 text-xs font-sans mb-1">{label}</p>
-      <p className="text-zinc-50 text-xl font-bold font-mono leading-none">{value}</p>
-    </div>
-  );
-}
-
 export default function SummaryScreen({ session, resetWorkout, setScreen }: Props) {
-  const restCount = session.lapLog.filter(l => l.type === 'rest_start').length;
+  const totalVol = session.exercises.reduce(
+    (sum, e) => sum + (e.weight || 0) * (e.sets || 0) * (e.repsPerSet || 0),
+    0,
+  );
 
   const grouped = session.bodyParts.reduce<Record<string, typeof session.exercises>>(
     (acc, part) => {
@@ -28,70 +22,74 @@ export default function SummaryScreen({ session, resetWorkout, setScreen }: Prop
   );
 
   return (
-    <div className="flex flex-col min-h-full">
-      <div className="flex-1 overflow-y-auto px-5 pt-14 pb-4">
-        <p className="text-zinc-500 text-sm font-sans">{formatDateShort(session.date)}</p>
-        <h1 className="text-zinc-50 text-2xl font-bold font-sans mt-1 mb-2">운동 완료</h1>
-        <div className="flex gap-1 flex-wrap mb-6">
-          {session.bodyParts.map(p => (
-            <span key={p} className="text-xs bg-lime-400/10 text-lime-400 px-2 py-0.5 rounded-full font-sans">
-              {p}
-            </span>
-          ))}
+    <div className="screen animate-fade-in">
+      {/* Header */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 6 }}>{formatDateShort(session.date)}</div>
+        <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 10 }}>운동 완료 🎉</div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {session.bodyParts.map(p => <span key={p} className="pill pill-lime">{p}</span>)}
         </div>
+      </div>
 
-        {/* Stats grid */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <StatCard label="총 운동 시간" value={formatTime(session.totalDuration)} />
-          <StatCard label="휴식 전환 횟수" value={`${restCount}회`} />
-          <StatCard label="평균 운동 구간" value={formatTime(session.avgWorkTime)} />
-          <StatCard label="평균 휴식 구간" value={formatTime(session.avgRestTime)} />
+      {/* Stats grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
+        <div className="stat-card">
+          <div className="stat-val">{formatDuration(session.totalDuration)}</div>
+          <div className="stat-lbl">총 운동 시간</div>
         </div>
+        <div className="stat-card">
+          <div className="stat-val">{session.restCount ?? 0}회</div>
+          <div className="stat-lbl">휴식 횟수</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-val">{formatDuration(session.avgWorkTime)}</div>
+          <div className="stat-lbl">평균 운동 구간</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-val">{formatDuration(session.avgRestTime)}</div>
+          <div className="stat-lbl">평균 휴식 구간</div>
+        </div>
+      </div>
 
-        {/* Exercise list */}
-        <h2 className="text-zinc-300 text-sm font-semibold font-sans mb-3">운동 내역</h2>
-        {session.bodyParts.map(part => {
-          const exList = grouped[part] ?? [];
-          if (exList.length === 0) return null;
+      {/* Session volume */}
+      {totalVol > 0 && (
+        <div className="card" style={{ marginBottom: 24, textAlign: 'center' }}>
+          <div style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 6 }}>이번 세션 볼륨</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 28, fontWeight: 700, color: 'var(--lime)', letterSpacing: '-0.03em' }}>
+            {totalVol.toLocaleString()}<span style={{ fontSize: 18 }}>kg</span>
+          </div>
+        </div>
+      )}
+
+      {/* Exercise breakdown */}
+      <div style={{ marginBottom: 28 }}>
+        <div className="section-label">운동 내역</div>
+        {Object.entries(grouped).map(([part, exs]) => {
+          if (exs.length === 0) return null;
           return (
-            <div key={part} className="mb-4">
-              <p className="text-lime-400 text-xs font-semibold font-sans mb-2 uppercase tracking-wide">
-                {part}
-              </p>
-              {exList.map(ex => (
-                <div key={ex.id} className="bg-zinc-900 rounded-xl p-3 mb-2 flex justify-between items-center border border-zinc-800/60">
-                  <div>
-                    <p className="text-zinc-50 text-sm font-sans font-medium">
-                      {ex.name || '이름 없음'}
-                    </p>
-                    <p className="text-zinc-500 text-xs font-sans mt-0.5">
-                      {ex.sets}세트 × {ex.repsPerSet}회
-                    </p>
+            <div key={part} style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--lime)', marginBottom: 8 }}>{part}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {exs.map(e => (
+                  <div key={e.id} className="card-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 15, fontWeight: 600 }}>{e.name || '이름 없음'}</span>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <span style={{ fontSize: 13, color: 'var(--text-2)' }}>{e.sets}×{e.repsPerSet}</span>
+                      {e.weight > 0 && <span className="pill pill-dark">{e.weight}kg</span>}
+                    </div>
                   </div>
-                  <span className="text-zinc-400 text-sm font-mono bg-zinc-800 px-2 py-1 rounded-lg">
-                    {ex.weight}kg
-                  </span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           );
         })}
       </div>
 
-      {/* Action buttons */}
-      <div className="px-5 pb-10 pt-3 border-t border-zinc-800/60 space-y-3">
-        <button
-          onClick={resetWorkout}
-          className="w-full h-14 rounded-2xl bg-lime-400 text-zinc-950 text-base font-bold font-sans active:scale-95 transition-all shadow-lg shadow-lime-400/20"
-        >
-          새 운동 시작
-        </button>
-        <button
-          onClick={() => setScreen('history')}
-          className="w-full h-14 rounded-2xl bg-zinc-900 border border-zinc-800 text-zinc-300 text-base font-bold font-sans active:scale-95 transition-all"
-        >
-          기록 보기
-        </button>
+      {/* Buttons */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <button className="btn btn-full btn-lime" onClick={resetWorkout}>새 운동 시작</button>
+        <button className="btn btn-full btn-dark" onClick={() => setScreen('history')}>기록 보기</button>
       </div>
     </div>
   );

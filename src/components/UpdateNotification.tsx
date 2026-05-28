@@ -45,7 +45,7 @@ export default function UpdateNotification() {
     // 하단 탭 네비게이션(~63px) 위에 띄움
     <div
       className="fixed left-0 right-0 z-50 flex justify-center px-4"
-      style={{ bottom: 'calc(80px + var(--sab, 0px))' }}
+      style={{ bottom: 'calc(var(--nav-h) + 8px + var(--sab, 0px))' }}
     >
       <div className="w-full max-w-[400px] bg-zinc-900 border border-lime-400/30 rounded-2xl px-4 py-3.5 flex items-center gap-3 shadow-2xl shadow-black/60">
         {/* 아이콘 */}
