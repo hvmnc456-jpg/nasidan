@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Courier New', monospace;
+}
+
+/* ─── 애니메이션 ─── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@utility animate-fade-in {
+  animation: fadeIn 0.25s ease forwards;
+}
+
+/* ─── 기본 리셋 ─── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #09090b;
+  /* 동적 뷰포트 높이: 모바일 주소창 고려 */
+  min-height: 100dvh;
+  overscroll-behavior: none;
+}
+
+/* ─── iOS Safe Area 변수 ─── */
+:root {
+  --sat: env(safe-area-inset-top,    0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left,   0px);
+  --sar: env(safe-area-inset-right,  0px);
+}
+
+/* ─── 스크롤바 숨김 ─── */
+::-webkit-scrollbar { width: 0; height: 0; }
+
+/* ─── 숫자 입력 스피너 제거 ─── */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] { -moz-appearance: textfield; }
+
+/* ─── iOS 독립형 모드 폼 자동완성 배경 방지 ─── */
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #27272a inset;
+  -webkit-text-fill-color: #fafafa;
+}
