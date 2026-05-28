@@ -6,7 +6,7 @@ interface Props {
   disabled?: boolean;
 }
 
-function IconHome({ active }: { active: boolean }) {
+function IconHome({ active: _active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -16,7 +16,7 @@ function IconHome({ active }: { active: boolean }) {
   );
 }
 
-function IconDumbbell({ active }: { active: boolean }) {
+function IconDumbbell({ active: _active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -29,7 +29,7 @@ function IconDumbbell({ active }: { active: boolean }) {
   );
 }
 
-function IconDiet({ active }: { active: boolean }) {
+function IconDiet({ active: _active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
