@@ -26,7 +26,7 @@
   --text-3:     #52525b;
   --ff:         'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
   --ff-mono:    'SF Mono', 'Fira Code', 'Fira Mono', monospace;
-  --nav-h:      72px;
+  --nav-h:      56px;
   --sat: env(safe-area-inset-top,    0px);
   --sab: env(safe-area-inset-bottom, 0px);
   --sal: env(safe-area-inset-left,   0px);
@@ -71,7 +71,7 @@ html, body, #root {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   padding-top: env(safe-area-inset-top, 0px);
-  /* 고정된 nav(72px) + iOS 홈바/Android 네비바 */
+  /* 고정된 nav(56px) + iOS 홈바/Android 네비바 */
   padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
 }
 .content::-webkit-scrollbar { display: none; }
