@@ -42,7 +42,10 @@ export default function App() {
             selectedBodyParts={workout.selectedBodyParts}
             exercises={workout.exercises}
             addExercise={workout.addExercise}
-            updateExercise={workout.updateExercise}
+            updateExerciseName={workout.updateExerciseName}
+            updateSet={workout.updateSet}
+            addSet={workout.addSet}
+            removeSet={workout.removeSet}
             removeExercise={workout.removeExercise}
             startWorkout={workout.startWorkout}
             setScreen={workout.setScreen}

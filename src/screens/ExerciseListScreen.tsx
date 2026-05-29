@@ -6,20 +6,19 @@ interface Props {
   selectedBodyParts: string[];
   exercises: Exercise[];
   addExercise: (bodyPart: string) => void;
-  updateExercise: (id: string, field: 'name' | 'weight' | 'sets' | 'repsPerSet', value: string | number) => void;
+  updateExerciseName: (id: string, name: string) => void;
+  updateSet: (id: string, setIndex: number, field: 'weight' | 'reps', value: number) => void;
+  addSet: (id: string) => void;
+  removeSet: (id: string, setIndex: number) => void;
   removeExercise: (id: string) => void;
   startWorkout: () => void;
   setScreen: (screen: Screen) => void;
 }
 
 export default function ExerciseListScreen({
-  selectedBodyParts,
-  exercises,
-  addExercise,
-  updateExercise,
-  removeExercise,
-  startWorkout,
-  setScreen,
+  selectedBodyParts, exercises,
+  addExercise, updateExerciseName, updateSet, addSet, removeSet, removeExercise,
+  startWorkout, setScreen,
 }: Props) {
   const [activeTab, setActiveTab] = useState(selectedBodyParts[0] ?? '');
   const currentExercises = exercises.filter(ex => ex.bodyPart === activeTab);
@@ -55,7 +54,7 @@ export default function ExerciseListScreen({
         })}
       </div>
 
-      {/* 운동 목록 */}
+      {/* 운동 목록 (스크롤) */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 16px' }}>
         {currentExercises.length === 0 && (
           <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-3)', fontSize: 14 }}>
@@ -67,15 +66,17 @@ export default function ExerciseListScreen({
           <ExerciseItem
             key={ex.id}
             exercise={ex}
-            onUpdate={updateExercise}
+            onUpdateName={updateExerciseName}
+            onUpdateSet={updateSet}
+            onAddSet={addSet}
+            onRemoveSet={removeSet}
             onRemove={removeExercise}
           />
         ))}
 
         <button className="add-ex-btn" onClick={() => addExercise(activeTab)}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <line x1="12" y1="5" x2="12" y2="19"/>
-            <line x1="5" y1="12" x2="19" y2="12"/>
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
           운동 추가
         </button>

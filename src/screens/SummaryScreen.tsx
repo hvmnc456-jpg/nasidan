@@ -16,12 +16,16 @@ function fmtDur(s: number): string {
   return `${sec}초`;
 }
 
+function exVolume(e: WorkoutSession['exercises'][number]): number {
+  return e.sets.reduce((sum, s) => sum + (s.weight || 0) * (s.reps || 0), 0);
+}
+
 export default function SummaryScreen({ session, resetWorkout, setScreen }: Props) {
   const [y, m, d] = session.date.split('-').map(Number);
   const dow = DAYS_KR[new Date(y, m - 1, d).getDay()];
   const dateShort = `${m}월 ${d}일 (${dow})`;
   const restCount = session.lapLog.filter(l => l.type === 'rest_start').length;
-  const totalVol = session.exercises.reduce((sum, e) => sum + (e.weight || 0) * (e.sets || 0) * (e.repsPerSet || 0), 0);
+  const totalVol = session.exercises.reduce((sum, e) => sum + exVolume(e), 0);
 
   const partGroups: Record<string, typeof session.exercises> = {};
   session.bodyParts.forEach(p => { partGroups[p] = session.exercises.filter(e => e.bodyPart === p); });
@@ -74,18 +78,32 @@ export default function SummaryScreen({ session, resetWorkout, setScreen }: Prop
           <div key={part} style={{ marginBottom: 16 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--lime)', marginBottom: 8 }}>{part}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {exs.map(e => (
-                <div key={e.id} className="card-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 15, fontWeight: 600 }}>{e.name || '이름 없음'}</span>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <span style={{ fontSize: 13, color: 'var(--text-2)' }}>{e.sets}×{e.repsPerSet}</span>
-                    {e.weight > 0 && <span className="pill pill-dark">{e.weight}kg</span>}
-                  </div>
-                </div>
-              ))}
               {exs.length === 0 && (
                 <div style={{ fontSize: 14, color: 'var(--text-3)', padding: '8px 0' }}>운동 없음</div>
               )}
+              {exs.map(e => (
+                <div key={e.id} className="card-inner">
+                  {/* 운동 이름 + 세트 수 */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: e.sets.length > 0 ? 10 : 0 }}>
+                    <span style={{ fontSize: 15, fontWeight: 600 }}>{e.name || '이름 없음'}</span>
+                    <span className="pill pill-dark">{e.sets.length}세트</span>
+                  </div>
+                  {/* 세트별 상세 */}
+                  {e.sets.map((s, i) => (
+                    <div key={i} style={{
+                      display: 'flex', alignItems: 'center', gap: 8,
+                      paddingTop: 6,
+                      borderTop: i === 0 ? '1px solid var(--border-2)' : 'none',
+                    }}>
+                      <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600, width: 36 }}>{i + 1}세트</span>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', flex: 1 }}>
+                        {s.weight > 0 ? `${s.weight}kg` : '—'}
+                      </span>
+                      <span style={{ fontSize: 13, color: 'var(--text-2)' }}>{s.reps}회</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
             </div>
           </div>
         ))}

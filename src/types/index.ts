@@ -1,3 +1,15 @@
+export interface SetEntry {
+  weight: number;
+  reps: number;
+}
+
+export interface Exercise {
+  id: string;
+  bodyPart: string;
+  name: string;
+  sets: SetEntry[];
+}
+
 export interface WorkoutSession {
   id: string;
   date: string;
@@ -7,15 +19,6 @@ export interface WorkoutSession {
   totalDuration: number;
   avgWorkTime: number;
   avgRestTime: number;
-}
-
-export interface Exercise {
-  id: string;
-  bodyPart: string;
-  name: string;
-  weight: number;
-  sets: number;
-  repsPerSet: number;
 }
 
 export interface LapEntry {

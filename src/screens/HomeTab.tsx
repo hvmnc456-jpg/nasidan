@@ -19,7 +19,7 @@ export default function HomeTab({ history, deleteSession }: Props) {
     let total = 0;
     history.forEach(s => {
       s.exercises.forEach(e => {
-        const vol = (e.weight || 0) * (e.sets || 0) * (e.repsPerSet || 0);
+        const vol = e.sets.reduce((s2, s) => s2 + (s.weight || 0) * (s.reps || 0), 0);
         total += vol;
         if ((CUMULATIVE_PARTS as readonly string[]).includes(e.bodyPart)) parts[e.bodyPart] += vol;
       });

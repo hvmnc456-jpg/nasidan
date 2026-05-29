@@ -103,7 +103,7 @@ export default function TimerScreen({ elapsedSeconds, status, lapLog, exercises,
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {exercises.filter(e => e.name).map(e => (
             <span key={e.id} className="pill pill-dark" style={{ fontSize: 13 }}>
-              {e.name} {e.weight > 0 ? `${e.weight}kg` : ''} {e.sets}×{e.repsPerSet}
+              {e.name} {e.sets.length}세트
             </span>
           ))}
         </div>

@@ -1,15 +1,40 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Screen, Exercise, LapEntry, WorkoutSession, WorkoutStatus } from '../types';
+import type { Screen, Exercise, SetEntry, LapEntry, WorkoutSession, WorkoutStatus } from '../types';
 import { todayString } from '../utils/time';
 
 function genId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+function defaultSets(count = 3): SetEntry[] {
+  return Array.from({ length: count }, () => ({ weight: 0, reps: 10 }));
+}
+
+// 구버전 데이터 (weight/sets:number/repsPerSet) → 새 포맷 마이그레이션
+function migrateExercise(raw: Record<string, unknown>): Exercise {
+  if (typeof raw.sets === 'number') {
+    const count = raw.sets as number;
+    const w = (raw.weight as number) || 0;
+    const r = (raw.repsPerSet as number) || 0;
+    return {
+      id: raw.id as string,
+      bodyPart: raw.bodyPart as string,
+      name: (raw.name as string) || '',
+      sets: Array.from({ length: count }, () => ({ weight: w, reps: r })),
+    };
+  }
+  return raw as unknown as Exercise;
+}
+
 function loadHistory(): WorkoutSession[] {
   try {
     const raw = localStorage.getItem('workout-history');
-    return raw ? (JSON.parse(raw) as WorkoutSession[]) : [];
+    if (!raw) return [];
+    const sessions = JSON.parse(raw) as WorkoutSession[];
+    return sessions.map(s => ({
+      ...s,
+      exercises: s.exercises.map(e => migrateExercise(e as unknown as Record<string, unknown>)),
+    }));
   } catch {
     return [];
   }
@@ -28,11 +53,9 @@ function calcStats(lapLog: LapEntry[]): { avgWorkTime: number; avgRestTime: numb
     if (!cur || !next) continue;
     const dur = next.timestamp - cur.timestamp;
     if (cur.type === 'workout_start' || cur.type === 'workout_resume') {
-      totalWork += dur;
-      workCount++;
+      totalWork += dur; workCount++;
     } else if (cur.type === 'rest_start') {
-      totalRest += dur;
-      restCount++;
+      totalRest += dur; restCount++;
     }
   }
   return {
@@ -61,16 +84,10 @@ export function useWorkout() {
         setElapsedSeconds(Math.floor((Date.now() - startTimeRef.current) / 1000));
       }, 100);
     } else {
-      if (intervalRef.current !== null) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
+      if (intervalRef.current !== null) { clearInterval(intervalRef.current); intervalRef.current = null; }
     }
     return () => {
-      if (intervalRef.current !== null) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
+      if (intervalRef.current !== null) { clearInterval(intervalRef.current); intervalRef.current = null; }
     };
   }, [status]);
 
@@ -82,25 +99,48 @@ export function useWorkout() {
 
   const goToExercises = useCallback(() => setScreen('exercises'), []);
 
+  // 운동 추가: 기본 3세트
   const addExercise = useCallback((bodyPart: string) => {
     setExercises(prev => [
       ...prev,
-      { id: genId(), bodyPart, name: '', weight: 0, sets: 3, repsPerSet: 10 },
+      { id: genId(), bodyPart, name: '', sets: defaultSets(3) },
     ]);
   }, []);
 
-  const updateExercise = useCallback((
-    id: string,
-    field: 'name' | 'weight' | 'sets' | 'repsPerSet',
-    value: string | number,
-  ) => {
-    setExercises(prev =>
-      prev.map(ex => ex.id === id ? { ...ex, [field]: value } : ex)
-    );
+  // 운동 이름 수정
+  const updateExerciseName = useCallback((id: string, name: string) => {
+    setExercises(prev => prev.map(ex => ex.id === id ? { ...ex, name } : ex));
   }, []);
 
+  // 운동 삭제
   const removeExercise = useCallback((id: string) => {
     setExercises(prev => prev.filter(ex => ex.id !== id));
+  }, []);
+
+  // 세트 추가
+  const addSet = useCallback((exerciseId: string) => {
+    setExercises(prev => prev.map(ex => {
+      if (ex.id !== exerciseId) return ex;
+      const last = ex.sets[ex.sets.length - 1];
+      return { ...ex, sets: [...ex.sets, { weight: last?.weight ?? 0, reps: last?.reps ?? 10 }] };
+    }));
+  }, []);
+
+  // 세트 삭제
+  const removeSet = useCallback((exerciseId: string, setIndex: number) => {
+    setExercises(prev => prev.map(ex => {
+      if (ex.id !== exerciseId || ex.sets.length <= 1) return ex;
+      return { ...ex, sets: ex.sets.filter((_, i) => i !== setIndex) };
+    }));
+  }, []);
+
+  // 세트 수치 수정
+  const updateSet = useCallback((exerciseId: string, setIndex: number, field: 'weight' | 'reps', value: number) => {
+    setExercises(prev => prev.map(ex => {
+      if (ex.id !== exerciseId) return ex;
+      const newSets = ex.sets.map((s, i) => i === setIndex ? { ...s, [field]: value } : s);
+      return { ...ex, sets: newSets };
+    }));
   }, []);
 
   const startWorkout = useCallback(() => {
@@ -173,14 +213,15 @@ export function useWorkout() {
     const updated = loadHistory().filter(s => s.id !== id);
     localStorage.setItem('workout-history', JSON.stringify(updated));
     setHistory(updated);
-    // 방금 완료한 운동이 삭제된 경우 요약 상태도 초기화
     setCompletedSession(prev => (prev?.id === id ? null : prev));
   }, []);
 
   return {
     screen, setScreen,
     selectedBodyParts, toggleBodyPart,
-    exercises, addExercise, updateExercise, removeExercise,
+    exercises,
+    addExercise, updateExerciseName, removeExercise,
+    addSet, removeSet, updateSet,
     lapLog, elapsedSeconds, status,
     completedSession, history,
     goToExercises, startWorkout,

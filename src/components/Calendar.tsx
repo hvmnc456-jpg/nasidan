@@ -24,7 +24,7 @@ function formatDuration(secs: number): string {
 
 function SessionCard({ session, onDelete }: { session: WorkoutSession; onDelete: (id: string) => void }) {
   const [confirming, setConfirming] = useState(false);
-  const totalVol = session.exercises.reduce((sum, e) => sum + (e.weight || 0) * (e.sets || 0) * (e.repsPerSet || 0), 0);
+  const totalVol = session.exercises.reduce((sum, e) => sum + e.sets.reduce((s2, s) => s2 + (s.weight || 0) * (s.reps || 0), 0), 0);
 
   return (
     <div className="card slide-down" style={{ marginBottom: 10 }}>
@@ -58,10 +58,7 @@ function SessionCard({ session, onDelete }: { session: WorkoutSession; onDelete:
         {session.exercises.map(e => (
           <div key={e.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{e.name || '이름 없음'}</span>
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-              <span style={{ fontSize: 13, color: 'var(--text-3)' }}>{e.sets}×{e.repsPerSet}</span>
-              {e.weight > 0 && <span className="pill pill-dark">{e.weight}kg</span>}
-            </div>
+            <span className="pill pill-dark">{e.sets.length}세트</span>
           </div>
         ))}
       </div>

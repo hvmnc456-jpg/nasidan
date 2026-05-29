@@ -22,7 +22,7 @@ function SessionCard({ session, onDelete }: { session: WorkoutSession; onDelete:
   const [isDeleting, setIsDeleting] = useState(false);
   const [y, m, d] = session.date.split('-').map(Number);
   const dow = DAYS_KR[new Date(y, m - 1, d).getDay()];
-  const vol = session.exercises.reduce((sum, e) => sum + (e.weight || 0) * (e.sets || 0) * (e.repsPerSet || 0), 0);
+  const vol = session.exercises.reduce((sum, e) => sum + e.sets.reduce((s2, s) => s2 + (s.weight || 0) * (s.reps || 0), 0), 0);
 
   return (
     <div className="card" style={{ marginBottom: 12 }}>
@@ -59,7 +59,7 @@ function SessionCard({ session, onDelete }: { session: WorkoutSession; onDelete:
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
         {session.exercises.filter(e => e.name).map(e => (
           <span key={e.id} className="pill pill-dark" style={{ fontSize: 11 }}>
-            {e.name} {e.weight > 0 ? `${e.weight}kg` : ''} {e.sets}×{e.repsPerSet}
+            {e.name} {e.sets.length}세트
           </span>
         ))}
       </div>
