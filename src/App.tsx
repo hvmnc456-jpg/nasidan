@@ -81,6 +81,8 @@ export default function App() {
         {screen === 'summary' && completedSession && (
           <SummaryScreen
             session={completedSession}
+            templates={templates}
+            onUpdateTemplates={handleTemplatesUpdate}
             resetWorkout={workout.resetWorkout}
             setScreen={workout.setScreen}
           />

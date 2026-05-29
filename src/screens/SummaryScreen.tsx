@@ -1,7 +1,12 @@
+import { useState } from 'react';
 import type { WorkoutSession, Screen } from '../types';
+
+type Templates = Record<string, string[]>;
 
 interface Props {
   session: WorkoutSession;
+  templates: Templates;
+  onUpdateTemplates: (t: Templates) => void;
   resetWorkout: () => void;
   setScreen: (screen: Screen) => void;
 }
@@ -20,7 +25,7 @@ function exVolume(e: WorkoutSession['exercises'][number]): number {
   return e.sets.reduce((sum, s) => sum + (s.weight || 0) * (s.reps || 0), 0);
 }
 
-export default function SummaryScreen({ session, resetWorkout, setScreen }: Props) {
+export default function SummaryScreen({ session, templates, onUpdateTemplates, resetWorkout, setScreen }: Props) {
   const [y, m, d] = session.date.split('-').map(Number);
   const dow = DAYS_KR[new Date(y, m - 1, d).getDay()];
   const dateShort = `${m}월 ${d}일 (${dow})`;
@@ -29,6 +34,29 @@ export default function SummaryScreen({ session, resetWorkout, setScreen }: Prop
 
   const partGroups: Record<string, typeof session.exercises> = {};
   session.bodyParts.forEach(p => { partGroups[p] = session.exercises.filter(e => e.bodyPart === p); });
+
+  // 직접 추가된 종목 감지 (템플릿에 없고 이름이 있는 것)
+  const newByPart = session.exercises.reduce<Record<string, string[]>>((acc, e) => {
+    if (!e.name.trim()) return acc;
+    const saved = templates[e.bodyPart] ?? [];
+    if (!saved.includes(e.name)) {
+      if (!acc[e.bodyPart]) acc[e.bodyPart] = [];
+      if (!acc[e.bodyPart].includes(e.name)) acc[e.bodyPart].push(e.name);
+    }
+    return acc;
+  }, {});
+  const hasNew = Object.keys(newByPart).length > 0;
+
+  const [promptDismissed, setPromptDismissed] = useState(false);
+
+  const handleSaveToTemplates = () => {
+    const next = { ...templates };
+    Object.entries(newByPart).forEach(([part, names]) => {
+      next[part] = [...(next[part] ?? []), ...names];
+    });
+    onUpdateTemplates(next);
+    setPromptDismissed(true);
+  };
 
   return (
     <div className="screen fade-up">
@@ -71,6 +99,57 @@ export default function SummaryScreen({ session, resetWorkout, setScreen }: Prop
         </div>
       )}
 
+      {/* 신규 종목 저장 안내 */}
+      {hasNew && !promptDismissed && (
+        <div style={{
+          marginBottom: 20,
+          background: 'var(--lime-bg)',
+          border: '1px solid rgba(163,230,53,0.3)',
+          borderRadius: 16,
+          padding: 16,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--lime)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--lime)' }}>
+              새 종목을 설정에 추가할까요?
+            </span>
+          </div>
+
+          {/* 추가될 종목 목록 */}
+          <div style={{ marginBottom: 12 }}>
+            {Object.entries(newByPart).map(([part, names]) => (
+              <div key={part} style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 4 }}>
+                <span className="pill pill-lime" style={{ fontSize: 11, flexShrink: 0 }}>{part}</span>
+                <span style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>
+                  {names.join(', ')}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              className="btn btn-sm btn-ghost"
+              style={{ flex: 1, height: 38 }}
+              onClick={() => setPromptDismissed(true)}
+            >
+              아니요
+            </button>
+            <button
+              className="btn btn-sm btn-lime"
+              style={{ flex: 1, height: 38 }}
+              onClick={handleSaveToTemplates}
+            >
+              네, 추가할게요
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 운동 내역 */}
       <div style={{ marginBottom: 28 }}>
         <div className="section-label">운동 내역</div>
@@ -83,12 +162,10 @@ export default function SummaryScreen({ session, resetWorkout, setScreen }: Prop
               )}
               {exs.map(e => (
                 <div key={e.id} className="card-inner">
-                  {/* 운동 이름 + 세트 수 */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: e.sets.length > 0 ? 10 : 0 }}>
                     <span style={{ fontSize: 15, fontWeight: 600 }}>{e.name || '이름 없음'}</span>
                     <span className="pill pill-dark">{e.sets.length}세트</span>
                   </div>
-                  {/* 세트별 상세 */}
                   {e.sets.map((s, i) => (
                     <div key={i} style={{
                       display: 'flex', alignItems: 'center', gap: 8,
