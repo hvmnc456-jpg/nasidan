@@ -1,7 +1,8 @@
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import type { WorkoutSession } from '../types';
 import { CUMULATIVE_PARTS } from '../constants';
 import Calendar from '../components/Calendar';
+import ChangelogSheet from '../components/ChangelogSheet';
 
 interface Props {
   history: WorkoutSession[];
@@ -12,6 +13,7 @@ const DAYS_KR = ['일', '월', '화', '수', '목', '금', '토'];
 
 export default function HomeTab({ history, deleteSession }: Props) {
   const today = new Date();
+  const [showChangelog, setShowChangelog] = useState(false);
 
   const stats = useMemo(() => {
     // 누적 볼륨 (부위별)
@@ -50,12 +52,36 @@ export default function HomeTab({ history, deleteSession }: Props) {
   return (
     <div className="screen fade-up">
       {/* 날짜 헤더 */}
-      <div style={{ marginBottom: 28 }}>
-        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-3)', marginBottom: 5 }}>오늘</div>
-        <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em' }}>
-          {`${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일 (${DAYS_KR[today.getDay()]})`}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 28 }}>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-3)', marginBottom: 5 }}>오늘</div>
+          <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em' }}>
+            {`${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일 (${DAYS_KR[today.getDay()]})`}
+          </div>
         </div>
+        <button
+          onClick={() => setShowChangelog(true)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 5,
+            background: 'var(--surface-2)',
+            border: '1px solid var(--border)',
+            borderRadius: 20,
+            padding: '6px 12px',
+            cursor: 'pointer',
+            flexShrink: 0,
+            marginTop: 2,
+          }}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--lime)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>업데이트</span>
+        </button>
       </div>
+
+      {showChangelog && <ChangelogSheet onClose={() => setShowChangelog(false)} />}
 
       {/* 캘린더 */}
       <Calendar history={history} deleteSession={deleteSession} />
