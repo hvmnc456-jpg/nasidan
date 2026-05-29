@@ -52,46 +52,55 @@ html, body {
   overscroll-behavior: none;
 }
 
-#root {
+html, body, #root {
   background: #000;
 }
 
 /* ─── App Shell ─── */
 .shell {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
   width: 100%;
   max-width: 430px;
+  margin: 0 auto;
   background: var(--bg);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  /* 콘텐츠가 짧아도 화면을 꽉 채움 */
+  min-height: 100dvh;
 }
 
+/* 스크롤 영역: 상단 safe area + 하단 nav 영역 확보 */
 .content {
-  flex: 1;
-  overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  padding-top: var(--sat);
+  padding-top: env(safe-area-inset-top, 0px);
+  /* 고정된 nav(72px) + iOS 홈바/Android 네비바 */
+  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
 }
 .content::-webkit-scrollbar { display: none; }
 
-/* ─── Bottom Nav ─── */
+/* ─── Bottom Nav — 화면 최하단 고정 ─── */
 .nav {
-  flex-shrink: 0;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  /* 넓은 화면에서도 앱 너비에 맞춤 */
+  max-width: 430px;
+  margin: 0 auto;
+  height: var(--nav-h);
   background: var(--surface);
   border-top: 1px solid var(--border);
   display: flex;
+  /* iOS 홈바 / Android 네비게이션 바 대응 */
   padding-bottom: env(safe-area-inset-bottom, 0px);
+  /* nav가 safe area만큼 늘어나도 버튼은 nav-h 안에서 중앙 정렬 */
+  align-items: flex-start;
+  z-index: 50;
+  /* iOS 홈바 아래까지 배경색 채움 */
+  box-sizing: content-box;
 }
 
 .nav-btn {
   flex: 1;
-  min-height: var(--nav-h);
+  height: var(--nav-h);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -218,7 +227,7 @@ input:-webkit-autofill {
 .pill-red   { background: var(--red-bg);    color: var(--red); }
 
 /* ─── Screen layout ─── */
-.screen { padding: 24px 20px calc(var(--nav-h) + var(--sab) + 24px); }
+.screen { padding: 24px 20px calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 24px); }
 
 /* ─── Header row ─── */
 .hdr {

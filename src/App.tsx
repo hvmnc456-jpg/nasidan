@@ -82,7 +82,7 @@ export default function App() {
   return (
     <div className="shell">
       <div className="content">
-        <div key={contentKey} className="fade-up" style={{ minHeight: '100%' }}>
+        <div key={contentKey} className="fade-up">
           {renderContent()}
         </div>
       </div>

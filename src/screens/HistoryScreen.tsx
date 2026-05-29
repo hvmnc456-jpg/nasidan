@@ -94,7 +94,7 @@ export default function HistoryScreen({ history, completedSession, setScreen, de
   };
 
   return (
-    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100dvh - var(--nav-h) - env(safe-area-inset-bottom, 0px))' }}>
       <div style={{ padding: '20px 20px 0' }}>
         <div className="hdr">
           <button className="btn-icon" onClick={handleBack}>

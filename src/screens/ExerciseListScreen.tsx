@@ -25,7 +25,7 @@ export default function ExerciseListScreen({
   const currentExercises = exercises.filter(ex => ex.bodyPart === activeTab);
 
   return (
-    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100dvh - var(--nav-h) - env(safe-area-inset-bottom, 0px))' }}>
       {/* 헤더 */}
       <div style={{ padding: '20px 20px 0' }}>
         <div className="hdr">
