@@ -84,9 +84,6 @@ export default function ExerciseItem({
   const isActive = timerStatus === 'working' || timerStatus === 'resting';
   const timerColor = timerStatus === 'resting' ? 'var(--amber)' : 'var(--lime)';
 
-  // 접힌 상태 요약
-  const weights = exercise.sets.map(s => s.weight).filter(w => w > 0);
-  const maxWeight = weights.length > 0 ? Math.max(...weights) : 0;
 
   const handleStart = () => {
     startTimeRef.current = Date.now();
@@ -185,12 +182,12 @@ export default function ExerciseItem({
   // ─── 접힌 상태 ───────────────────────────────────
   if (!isExpanded) {
     return (
-      <div
-        className="card"
-        style={{ marginBottom: 12, cursor: isActive ? 'default' : 'pointer' }}
-        onClick={() => !isActive && setIsExpanded(true)}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div className="card" style={{ marginBottom: 12 }}>
+        {/* 이름 행 — 클릭하면 펼치기 */}
+        <div
+          style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
+          onClick={() => setIsExpanded(true)}
+        >
           <div style={{ color: 'var(--text-3)', flexShrink: 0, lineHeight: 0 }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="6 9 12 15 18 9"/>
@@ -201,37 +198,64 @@ export default function ExerciseItem({
           </span>
           <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexShrink: 0 }}>
             <span className="pill pill-dark" style={{ fontSize: 11 }}>{exercise.sets.length}세트</span>
-            {maxWeight > 0 && <span className="pill pill-dark" style={{ fontSize: 11 }}>최대 {maxWeight}kg</span>}
             {timerStatus === 'completed' && (
               <span className="pill pill-lime" style={{ fontSize: 11 }}>✓ {formatTime(elapsed)}</span>
             )}
             {isActive && (
               <span className={timerStatus === 'working' ? 'pill pill-lime' : 'pill pill-amber'} style={{ fontSize: 11 }}>
-                {timerStatus === 'working' ? '● 운동 중' : '● 휴식 중'}
+                {timerStatus === 'working' ? `${completedSets + 1}세트 중` : '휴식 중'}
               </span>
             )}
           </div>
         </div>
 
-        {/* 접혀 있어도 타이머 진행 중이면 표시 */}
-        {isActive && (
-          <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--border-2)' }}
-            onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-              <div className="blink" style={{ width: 8, height: 8, borderRadius: '50%', background: timerColor, flexShrink: 0 }} />
-              <span style={{ fontFamily: 'var(--ff-mono)', fontSize: 18, fontWeight: 700, color: timerColor, letterSpacing: '-0.02em', marginLeft: 'auto' }}>
+        {/* 타이머 섹션 — 항상 표시, 이벤트 버블링 차단 */}
+        <div
+          style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--border-2)' }}
+          onClick={e => e.stopPropagation()}
+        >
+          {/* 대기 */}
+          {timerStatus === 'idle' && (
+            <button className="btn btn-full btn-dark" style={{ height: 40, fontSize: 14 }} onClick={handleStart}>
+              운동 시작
+            </button>
+          )}
+
+          {/* 진행 중 / 휴식 중 */}
+          {isActive && (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <div className="blink" style={{ width: 8, height: 8, borderRadius: '50%', background: timerColor, flexShrink: 0 }} />
+                <span className={timerStatus === 'working' ? 'pill pill-lime' : 'pill pill-amber'} style={{ fontSize: 11 }}>
+                  {timerStatus === 'working' ? `${completedSets + 1}세트 운동 중` : '휴식 중'}
+                </span>
+                <span style={{ fontFamily: 'var(--ff-mono)', fontSize: 18, fontWeight: 700, color: timerColor, letterSpacing: '-0.02em', marginLeft: 'auto' }}>
+                  {formatTime(elapsed)}
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {timerStatus === 'working'
+                  ? <button className="btn btn-dark" style={{ flex: 1, height: 40, fontSize: 14 }} onClick={handleRest}>휴식</button>
+                  : <button className="btn btn-amber" style={{ flex: 1, height: 40, fontSize: 14 }} onClick={handleResume}>운동 재개</button>
+                }
+                <button className="btn btn-lime" style={{ flex: 1, height: 40, fontSize: 14 }} onClick={handleComplete}>완료</button>
+              </div>
+            </>
+          )}
+
+          {/* 완료 */}
+          {timerStatus === 'completed' && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lime)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span style={{ fontSize: 13, color: 'var(--text-2)' }}>총 {completedSets}세트 완료</span>
+              <span style={{ fontFamily: 'var(--ff-mono)', fontSize: 15, fontWeight: 700, color: 'var(--lime)' }}>
                 {formatTime(elapsed)}
               </span>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              {timerStatus === 'working'
-                ? <button className="btn btn-dark" style={{ flex: 1, height: 40, fontSize: 14 }} onClick={handleRest}>휴식</button>
-                : <button className="btn btn-amber" style={{ flex: 1, height: 40, fontSize: 14 }} onClick={handleResume}>운동 재개</button>
-              }
-              <button className="btn btn-lime" style={{ flex: 1, height: 40, fontSize: 14 }} onClick={handleComplete}>완료</button>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     );
   }
