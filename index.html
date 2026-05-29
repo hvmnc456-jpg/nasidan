@@ -3,11 +3,17 @@
   <head>
     <meta charset="UTF-8" />
 
+    <!-- 다크 모드 — Android 흰 배경 flash 방지 -->
+    <meta name="color-scheme" content="dark" />
+
     <!-- 뷰포트: viewport-fit=cover 로 노치/Dynamic Island 까지 full-screen -->
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
+
+    <!-- Pretendard 폰트 CDN 사전 연결 (로드 지연 감소) -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 
     <!-- PWA 아이콘 -->
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
@@ -17,7 +23,7 @@
     <!-- Android PWA manifest -->
     <link rel="manifest" href="/manifest.webmanifest" />
 
-    <!-- 테마 색상 (Android Chrome 툴바, 브라우저 UI) -->
+    <!-- 테마 색상 (Android Chrome 툴바) -->
     <meta name="theme-color" content="#09090b" />
 
     <!-- iOS Safari PWA -->
@@ -30,14 +36,6 @@
     <meta name="msapplication-TileImage" content="/pwa-192x192.png" />
 
     <title>나.시.단</title>
-
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
   </head>
   <body>
     <div id="root"></div>
