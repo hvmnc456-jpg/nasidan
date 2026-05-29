@@ -2,10 +2,14 @@ import { useState } from 'react';
 import type { Exercise, LapEntry, Screen } from '../types';
 import ExerciseItem from '../components/ExerciseItem';
 
+type Templates = Record<string, string[]>;
+
 interface Props {
   selectedBodyParts: string[];
   exercises: Exercise[];
+  templates: Templates;
   addExercise: (bodyPart: string) => void;
+  addExerciseWithName: (bodyPart: string, name: string) => void;
   updateExerciseName: (id: string, name: string) => void;
   updateSet: (id: string, setIndex: number, field: 'weight' | 'reps', value: number) => void;
   addSet: (id: string) => void;
@@ -18,14 +22,17 @@ interface Props {
 }
 
 export default function ExerciseListScreen({
-  selectedBodyParts, exercises,
-  addExercise, updateExerciseName, updateSet, addSet, removeSet, removeExercise,
+  selectedBodyParts, exercises, templates,
+  addExercise, addExerciseWithName, updateExerciseName, updateSet, addSet, removeSet, removeExercise,
   updateExerciseTimer, completeWorkout, onTimerChange, setScreen,
 }: Props) {
   const [activeTab, setActiveTab] = useState(selectedBodyParts[0] ?? '');
   const [activeTimers, setActiveTimers] = useState(new Set<string>());
 
   const currentExercises = exercises.filter(ex => ex.bodyPart === activeTab);
+  const savedTemplates = templates[activeTab] ?? [];
+  // 이미 추가된 종목 이름 목록 (중복 추가 방지용)
+  const addedNames = new Set(currentExercises.map(e => e.name));
 
   const handleTimerStateChange = (exerciseId: string, isActive: boolean) => {
     setActiveTimers(prev => {
@@ -69,7 +76,53 @@ export default function ExerciseListScreen({
 
       {/* 운동 목록 */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 16px' }}>
-        {currentExercises.length === 0 && (
+
+        {/* ── 저장된 종목 빠른 추가 ── */}
+        {savedTemplates.length > 0 && activeTimers.size === 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>
+              저장된 종목
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {savedTemplates.map(name => {
+                const already = addedNames.has(name);
+                return (
+                  <button
+                    key={name}
+                    onClick={() => !already && addExerciseWithName(activeTab, name)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 5,
+                      padding: '7px 12px',
+                      borderRadius: 9999,
+                      border: `1px solid ${already ? 'var(--border)' : 'var(--lime)'}`,
+                      background: already ? 'var(--surface-2)' : 'var(--lime-bg)',
+                      color: already ? 'var(--text-3)' : 'var(--lime)',
+                      fontSize: 13, fontWeight: 600,
+                      fontFamily: 'var(--ff)',
+                      cursor: already ? 'default' : 'pointer',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {already ? (
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                    ) : (
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                      </svg>
+                    )}
+                    {name}
+                  </button>
+                );
+              })}
+            </div>
+            <div style={{ height: 1, background: 'var(--border-2)', margin: '14px 0 4px' }} />
+          </div>
+        )}
+
+        {/* 추가된 운동 없을 때 안내 */}
+        {currentExercises.length === 0 && savedTemplates.length === 0 && (
           <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-3)', fontSize: 14 }}>
             + 운동을 추가하세요
           </div>
@@ -89,13 +142,13 @@ export default function ExerciseListScreen({
           />
         ))}
 
-        {/* 운동 추가 버튼 (타이머 진행 중이 아닐 때만) */}
+        {/* 직접 추가 (타이머 진행 중이 아닐 때만) */}
         {activeTimers.size === 0 && (
           <button className="add-ex-btn" onClick={() => addExercise(activeTab)}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
-            운동 추가
+            직접 추가
           </button>
         )}
       </div>

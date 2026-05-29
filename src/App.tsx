@@ -8,18 +8,35 @@ import UpdateNotification from './components/UpdateNotification';
 import HomeTab from './screens/HomeTab';
 import DietTab from './screens/DietTab';
 import RecordsTab from './screens/RecordsTab';
+import SettingsTab from './screens/SettingsTab';
 import HomeScreen from './screens/HomeScreen';
 import ExerciseListScreen from './screens/ExerciseListScreen';
 import SummaryScreen from './screens/SummaryScreen';
 import HistoryScreen from './screens/HistoryScreen';
 
+type Templates = Record<string, string[]>;
+
+function loadTemplates(): Templates {
+  try {
+    const raw = localStorage.getItem('exercise-templates');
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
 export default function App() {
   const [appTab, setAppTab] = useState<AppTab>('home');
   const [isTimerActive, setIsTimerActive] = useState(false);
+  const [templates, setTemplates] = useState<Templates>(() => loadTemplates());
+
   const workout = useWorkout();
   const { screen, completedSession } = workout;
 
   const contentKey = appTab === 'workout' ? `workout-${screen}` : appTab;
+
+  const handleTemplatesUpdate = (next: Templates) => {
+    setTemplates(next);
+    localStorage.setItem('exercise-templates', JSON.stringify(next));
+  };
 
   const renderContent = () => {
     if (appTab === 'home') {
@@ -30,6 +47,9 @@ export default function App() {
     }
     if (appTab === 'records') {
       return <RecordsTab history={workout.history} />;
+    }
+    if (appTab === 'settings') {
+      return <SettingsTab templates={templates} onUpdate={handleTemplatesUpdate} />;
     }
     return (
       <>
@@ -44,7 +64,9 @@ export default function App() {
           <ExerciseListScreen
             selectedBodyParts={workout.selectedBodyParts}
             exercises={workout.exercises}
+            templates={templates}
             addExercise={workout.addExercise}
+            addExerciseWithName={workout.addExerciseWithName}
             updateExerciseName={workout.updateExerciseName}
             updateSet={workout.updateSet}
             addSet={workout.addSet}

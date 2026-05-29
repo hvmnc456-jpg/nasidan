@@ -30,4 +30,4 @@ export interface LapEntry {
 
 export type ExerciseTimerStatus = 'idle' | 'working' | 'resting' | 'completed';
 export type Screen = 'home' | 'exercises' | 'summary' | 'history';
-export type AppTab = 'home' | 'workout' | 'diet' | 'records';
+export type AppTab = 'home' | 'workout' | 'diet' | 'records' | 'settings';

@@ -81,6 +81,14 @@ export function useWorkout() {
     ]);
   }, []);
 
+  // 설정에서 저장된 종목 이름으로 바로 추가
+  const addExerciseWithName = useCallback((bodyPart: string, name: string) => {
+    setExercises(prev => [
+      ...prev,
+      { id: genId(), bodyPart, name, sets: defaultSets(3) },
+    ]);
+  }, []);
+
   const updateExerciseName = useCallback((id: string, name: string) => {
     setExercises(prev => prev.map(ex => ex.id === id ? { ...ex, name } : ex));
   }, []);
@@ -161,7 +169,7 @@ export function useWorkout() {
     screen, setScreen,
     selectedBodyParts, toggleBodyPart,
     exercises,
-    addExercise, updateExerciseName, removeExercise,
+    addExercise, addExerciseWithName, updateExerciseName, removeExercise,
     addSet, removeSet, updateSet,
     updateExerciseTimer,
     completedSession, history,
