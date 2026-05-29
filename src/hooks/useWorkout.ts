@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Screen, Exercise, SetEntry, LapEntry, WorkoutSession, WorkoutStatus } from '../types';
+import { useState, useCallback } from 'react';
+import type { Screen, Exercise, SetEntry, LapEntry, WorkoutSession } from '../types';
 import { todayString } from '../utils/time';
 
 function genId(): string {
@@ -10,7 +10,6 @@ function defaultSets(count = 3): SetEntry[] {
   return Array.from({ length: count }, () => ({ weight: 0, reps: 10 }));
 }
 
-// 구버전 데이터 (weight/sets:number/repsPerSet) → 새 포맷 마이그레이션
 function migrateExercise(raw: Record<string, unknown>): Exercise {
   if (typeof raw.sets === 'number') {
     const count = raw.sets as number;
@@ -48,15 +47,11 @@ function saveSession(session: WorkoutSession): void {
 function calcStats(lapLog: LapEntry[]): { avgWorkTime: number; avgRestTime: number } {
   let totalWork = 0, totalRest = 0, workCount = 0, restCount = 0;
   for (let i = 0; i < lapLog.length - 1; i++) {
-    const cur = lapLog[i];
-    const next = lapLog[i + 1];
+    const cur = lapLog[i], next = lapLog[i + 1];
     if (!cur || !next) continue;
     const dur = next.timestamp - cur.timestamp;
-    if (cur.type === 'workout_start' || cur.type === 'workout_resume') {
-      totalWork += dur; workCount++;
-    } else if (cur.type === 'rest_start') {
-      totalRest += dur; restCount++;
-    }
+    if (cur.type === 'workout_start' || cur.type === 'workout_resume') { totalWork += dur; workCount++; }
+    else if (cur.type === 'rest_start') { totalRest += dur; restCount++; }
   }
   return {
     avgWorkTime: workCount > 0 ? Math.round(totalWork / workCount) : 0,
@@ -68,28 +63,8 @@ export function useWorkout() {
   const [screen, setScreen] = useState<Screen>('home');
   const [selectedBodyParts, setSelectedBodyParts] = useState<string[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [lapLog, setLapLog] = useState<LapEntry[]>([]);
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [status, setStatus] = useState<WorkoutStatus>('idle');
   const [completedSession, setCompletedSession] = useState<WorkoutSession | null>(null);
   const [history, setHistory] = useState<WorkoutSession[]>(() => loadHistory());
-
-  const startTimeRef = useRef(0);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const lapLogRef = useRef<LapEntry[]>([]);
-
-  useEffect(() => {
-    if (status === 'working' || status === 'resting') {
-      intervalRef.current = setInterval(() => {
-        setElapsedSeconds(Math.floor((Date.now() - startTimeRef.current) / 1000));
-      }, 100);
-    } else {
-      if (intervalRef.current !== null) { clearInterval(intervalRef.current); intervalRef.current = null; }
-    }
-    return () => {
-      if (intervalRef.current !== null) { clearInterval(intervalRef.current); intervalRef.current = null; }
-    };
-  }, [status]);
 
   const toggleBodyPart = useCallback((part: string) => {
     setSelectedBodyParts(prev =>
@@ -99,7 +74,6 @@ export function useWorkout() {
 
   const goToExercises = useCallback(() => setScreen('exercises'), []);
 
-  // 운동 추가: 기본 3세트
   const addExercise = useCallback((bodyPart: string) => {
     setExercises(prev => [
       ...prev,
@@ -107,17 +81,14 @@ export function useWorkout() {
     ]);
   }, []);
 
-  // 운동 이름 수정
   const updateExerciseName = useCallback((id: string, name: string) => {
     setExercises(prev => prev.map(ex => ex.id === id ? { ...ex, name } : ex));
   }, []);
 
-  // 운동 삭제
   const removeExercise = useCallback((id: string) => {
     setExercises(prev => prev.filter(ex => ex.id !== id));
   }, []);
 
-  // 세트 추가
   const addSet = useCallback((exerciseId: string) => {
     setExercises(prev => prev.map(ex => {
       if (ex.id !== exerciseId) return ex;
@@ -126,7 +97,6 @@ export function useWorkout() {
     }));
   }, []);
 
-  // 세트 삭제
   const removeSet = useCallback((exerciseId: string, setIndex: number) => {
     setExercises(prev => prev.map(ex => {
       if (ex.id !== exerciseId || ex.sets.length <= 1) return ex;
@@ -134,58 +104,35 @@ export function useWorkout() {
     }));
   }, []);
 
-  // 세트 수치 수정
   const updateSet = useCallback((exerciseId: string, setIndex: number, field: 'weight' | 'reps', value: number) => {
     setExercises(prev => prev.map(ex => {
       if (ex.id !== exerciseId) return ex;
-      const newSets = ex.sets.map((s, i) => i === setIndex ? { ...s, [field]: value } : s);
-      return { ...ex, sets: newSets };
+      return { ...ex, sets: ex.sets.map((s, i) => i === setIndex ? { ...s, [field]: value } : s) };
     }));
   }, []);
 
-  const startWorkout = useCallback(() => {
-    startTimeRef.current = Date.now();
-    setElapsedSeconds(0);
-    const initial: LapEntry[] = [{ timestamp: 0, type: 'workout_start' }];
-    lapLogRef.current = initial;
-    setLapLog(initial);
-    setStatus('working');
-    setScreen('timer');
+  // 운동별 타이머 완료 시 호출 → exercise에 시간/랩 저장
+  const updateExerciseTimer = useCallback((id: string, duration: number, lapLog: LapEntry[]) => {
+    setExercises(prev => prev.map(ex =>
+      ex.id === id ? { ...ex, timerDuration: duration, timerLapLog: lapLog } : ex
+    ));
   }, []);
 
-  const startRest = useCallback(() => {
-    const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-    const entry: LapEntry = { timestamp: elapsed, type: 'rest_start' };
-    const updated = [...lapLogRef.current, entry];
-    lapLogRef.current = updated;
-    setLapLog(updated);
-    setStatus('resting');
-  }, []);
-
-  const resumeWorkout = useCallback(() => {
-    const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-    const entry: LapEntry = { timestamp: elapsed, type: 'workout_resume' };
-    const updated = [...lapLogRef.current, entry];
-    lapLogRef.current = updated;
-    setLapLog(updated);
-    setStatus('working');
-  }, []);
-
+  // 전체 운동 완료 — 각 운동의 타이머 데이터를 집계해 세션 저장
   const completeWorkout = useCallback(() => {
-    const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-    const entry: LapEntry = { timestamp: elapsed, type: 'complete' };
-    const finalLog = [...lapLogRef.current, entry];
-    lapLogRef.current = finalLog;
-    setLapLog(finalLog);
+    const allLapLogs: LapEntry[] = [];
+    exercises.forEach(e => { if (e.timerLapLog?.length) allLapLogs.push(...e.timerLapLog); });
 
-    const stats = calcStats(finalLog);
+    const totalDuration = exercises.reduce((sum, e) => sum + (e.timerDuration ?? 0), 0);
+    const stats = calcStats(allLapLogs);
+
     const session: WorkoutSession = {
       id: genId(),
       date: todayString(),
       bodyParts: selectedBodyParts,
       exercises,
-      lapLog: finalLog,
-      totalDuration: elapsed,
+      lapLog: allLapLogs,
+      totalDuration,
       avgWorkTime: stats.avgWorkTime,
       avgRestTime: stats.avgRestTime,
     };
@@ -193,19 +140,13 @@ export function useWorkout() {
     saveSession(session);
     setCompletedSession(session);
     setHistory(loadHistory());
-    setElapsedSeconds(elapsed);
-    setStatus('completed');
     setScreen('summary');
   }, [selectedBodyParts, exercises]);
 
   const resetWorkout = useCallback(() => {
-    lapLogRef.current = [];
     setScreen('home');
     setSelectedBodyParts([]);
     setExercises([]);
-    setLapLog([]);
-    setElapsedSeconds(0);
-    setStatus('idle');
     setCompletedSession(null);
   }, []);
 
@@ -222,10 +163,9 @@ export function useWorkout() {
     exercises,
     addExercise, updateExerciseName, removeExercise,
     addSet, removeSet, updateSet,
-    lapLog, elapsedSeconds, status,
+    updateExerciseTimer,
     completedSession, history,
-    goToExercises, startWorkout,
-    startRest, resumeWorkout, completeWorkout,
+    goToExercises, completeWorkout,
     resetWorkout, deleteSession,
   };
 }

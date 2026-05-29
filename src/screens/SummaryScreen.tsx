@@ -48,16 +48,16 @@ export default function SummaryScreen({ session, resetWorkout, setScreen }: Prop
           <div className="stat-lbl">총 운동 시간</div>
         </div>
         <div className="stat-card">
+          <div className="stat-val">{session.exercises.filter(e => e.timerDuration).length}개</div>
+          <div className="stat-lbl">타이머 사용 운동</div>
+        </div>
+        <div className="stat-card">
           <div className="stat-val">{restCount}회</div>
-          <div className="stat-lbl">휴식 횟수</div>
+          <div className="stat-lbl">총 휴식 횟수</div>
         </div>
         <div className="stat-card">
-          <div className="stat-val">{fmtDur(session.avgWorkTime)}</div>
-          <div className="stat-lbl">평균 운동 구간</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-val">{fmtDur(session.avgRestTime)}</div>
-          <div className="stat-lbl">평균 휴식 구간</div>
+          <div className="stat-val">{session.exercises.reduce((sum, e) => sum + e.sets.length, 0)}세트</div>
+          <div className="stat-lbl">총 세트</div>
         </div>
       </div>
 

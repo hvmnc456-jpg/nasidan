@@ -8,6 +8,8 @@ export interface Exercise {
   bodyPart: string;
   name: string;
   sets: SetEntry[];
+  timerDuration?: number;   // 운동 완료 후 측정된 시간(초)
+  timerLapLog?: LapEntry[]; // 운동 완료 후 랩 로그
 }
 
 export interface WorkoutSession {
@@ -26,6 +28,6 @@ export interface LapEntry {
   type: 'workout_start' | 'rest_start' | 'workout_resume' | 'complete';
 }
 
-export type Screen = 'home' | 'exercises' | 'timer' | 'summary' | 'history';
-export type WorkoutStatus = 'idle' | 'working' | 'resting' | 'completed';
+export type ExerciseTimerStatus = 'idle' | 'working' | 'resting' | 'completed';
+export type Screen = 'home' | 'exercises' | 'summary' | 'history';
 export type AppTab = 'home' | 'workout' | 'diet';

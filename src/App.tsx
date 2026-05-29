@@ -9,16 +9,15 @@ import HomeTab from './screens/HomeTab';
 import DietTab from './screens/DietTab';
 import HomeScreen from './screens/HomeScreen';
 import ExerciseListScreen from './screens/ExerciseListScreen';
-import TimerScreen from './screens/TimerScreen';
 import SummaryScreen from './screens/SummaryScreen';
 import HistoryScreen from './screens/HistoryScreen';
 
 export default function App() {
   const [appTab, setAppTab] = useState<AppTab>('home');
+  const [isTimerActive, setIsTimerActive] = useState(false);
   const workout = useWorkout();
   const { screen, completedSession } = workout;
 
-  const isTimerActive = screen === 'timer';
   const contentKey = appTab === 'workout' ? `workout-${screen}` : appTab;
 
   const renderContent = () => {
@@ -47,20 +46,10 @@ export default function App() {
             addSet={workout.addSet}
             removeSet={workout.removeSet}
             removeExercise={workout.removeExercise}
-            startWorkout={workout.startWorkout}
-            setScreen={workout.setScreen}
-          />
-        )}
-        {screen === 'timer' && (
-          <TimerScreen
-            elapsedSeconds={workout.elapsedSeconds}
-            status={workout.status}
-            lapLog={workout.lapLog}
-            exercises={workout.exercises}
-            selectedParts={workout.selectedBodyParts}
-            startRest={workout.startRest}
-            resumeWorkout={workout.resumeWorkout}
+            updateExerciseTimer={workout.updateExerciseTimer}
             completeWorkout={workout.completeWorkout}
+            onTimerChange={setIsTimerActive}
+            setScreen={workout.setScreen}
           />
         )}
         {screen === 'summary' && completedSession && (

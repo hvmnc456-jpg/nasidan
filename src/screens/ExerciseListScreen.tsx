@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Exercise, Screen } from '../types';
+import type { Exercise, LapEntry, Screen } from '../types';
 import ExerciseItem from '../components/ExerciseItem';
 
 interface Props {
@@ -11,17 +11,30 @@ interface Props {
   addSet: (id: string) => void;
   removeSet: (id: string, setIndex: number) => void;
   removeExercise: (id: string) => void;
-  startWorkout: () => void;
+  updateExerciseTimer: (id: string, duration: number, lapLog: LapEntry[]) => void;
+  completeWorkout: () => void;
+  onTimerChange: (isActive: boolean) => void;
   setScreen: (screen: Screen) => void;
 }
 
 export default function ExerciseListScreen({
   selectedBodyParts, exercises,
   addExercise, updateExerciseName, updateSet, addSet, removeSet, removeExercise,
-  startWorkout, setScreen,
+  updateExerciseTimer, completeWorkout, onTimerChange, setScreen,
 }: Props) {
   const [activeTab, setActiveTab] = useState(selectedBodyParts[0] ?? '');
+  const [activeTimers, setActiveTimers] = useState(new Set<string>());
+
   const currentExercises = exercises.filter(ex => ex.bodyPart === activeTab);
+
+  const handleTimerStateChange = (exerciseId: string, isActive: boolean) => {
+    setActiveTimers(prev => {
+      const next = new Set(prev);
+      if (isActive) next.add(exerciseId); else next.delete(exerciseId);
+      onTimerChange(next.size > 0);
+      return next;
+    });
+  };
 
   return (
     <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100dvh - var(--nav-h) - env(safe-area-inset-bottom, 0px))' }}>
@@ -54,7 +67,7 @@ export default function ExerciseListScreen({
         })}
       </div>
 
-      {/* 운동 목록 (스크롤) */}
+      {/* 운동 목록 */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 16px' }}>
         {currentExercises.length === 0 && (
           <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-3)', fontSize: 14 }}>
@@ -71,21 +84,30 @@ export default function ExerciseListScreen({
             onAddSet={addSet}
             onRemoveSet={removeSet}
             onRemove={removeExercise}
+            onTimerComplete={updateExerciseTimer}
+            onTimerStateChange={handleTimerStateChange}
           />
         ))}
 
-        <button className="add-ex-btn" onClick={() => addExercise(activeTab)}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-          운동 추가
-        </button>
+        {/* 운동 추가 버튼 (타이머 진행 중이 아닐 때만) */}
+        {activeTimers.size === 0 && (
+          <button className="add-ex-btn" onClick={() => addExercise(activeTab)}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            운동 추가
+          </button>
+        )}
       </div>
 
-      {/* 운동 시작 버튼 */}
+      {/* 전체 운동 완료 버튼 */}
       <div style={{ padding: '12px 20px 20px', borderTop: '1px solid var(--border-2)' }}>
-        <button className="btn btn-full btn-lime" onClick={startWorkout}>
-          운동 시작
+        <button
+          className="btn btn-full btn-lime"
+          onClick={completeWorkout}
+          disabled={activeTimers.size > 0}
+        >
+          {activeTimers.size > 0 ? '운동 중인 항목을 먼저 완료하세요' : '운동 완료'}
         </button>
       </div>
     </div>
