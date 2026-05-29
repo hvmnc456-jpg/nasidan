@@ -321,7 +321,6 @@ export default function ExerciseItem({
               <input
                 type="number" min="0" step="0.5"
                 value={set.weight || ''} placeholder="0"
-                readOnly={isActive || timerStatus === 'completed'}
                 onChange={e => onUpdateSet(exercise.id, i, 'weight', parseFloat(e.target.value) || 0)}
               />
             </div>
@@ -329,11 +328,10 @@ export default function ExerciseItem({
               <input
                 type="number" min="1"
                 value={set.reps || ''} placeholder="10"
-                readOnly={isActive || timerStatus === 'completed'}
                 onChange={e => onUpdateSet(exercise.id, i, 'reps', parseInt(e.target.value) || 0)}
               />
             </div>
-            {timerStatus === 'idle' && exercise.sets.length > 1 ? (
+            {exercise.sets.length > 1 ? (
               <button className="btn-icon" style={{ width: 24, height: 24, borderRadius: 6, flexShrink: 0 }}
                 onClick={() => onRemoveSet(exercise.id, i)}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -346,15 +344,13 @@ export default function ExerciseItem({
       })}
 
       {/* 세트 추가 */}
-      {timerStatus === 'idle' && (
-        <button className="add-ex-btn" style={{ marginTop: 8, height: 36, fontSize: 13 }}
-          onClick={() => onAddSet(exercise.id)}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-          세트 추가
-        </button>
-      )}
+      <button className="add-ex-btn" style={{ marginTop: 8, height: 36, fontSize: 13 }}
+        onClick={() => onAddSet(exercise.id)}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        세트 추가
+      </button>
 
       {/* ─── 타이머 섹션 ─── */}
       <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--border-2)' }}>
