@@ -18,6 +18,7 @@ export default function ExerciseItem({
   onUpdateName, onUpdateSet, onAddSet, onRemoveSet, onRemove,
   onTimerComplete, onTimerStateChange,
 }: Props) {
+  const [isExpanded, setIsExpanded] = useState(true);
   const [timerStatus, setTimerStatus] = useState<ExerciseTimerStatus>('idle');
   const [elapsed, setElapsed] = useState(0);
   const [, setLapLog] = useState<LapEntry[]>([]);
@@ -27,7 +28,6 @@ export default function ExerciseItem({
   const lapLogRef = useRef<LapEntry[]>([]);
   const elapsedRef = useRef(0);
 
-  // 인터벌 관리
   useEffect(() => {
     if (timerStatus === 'working' || timerStatus === 'resting') {
       intervalRef.current = setInterval(() => {
@@ -42,6 +42,11 @@ export default function ExerciseItem({
   }, [timerStatus]);
 
   const isActive = timerStatus === 'working' || timerStatus === 'resting';
+  const timerColor = timerStatus === 'resting' ? 'var(--amber)' : 'var(--lime)';
+
+  // 접힌 상태 요약 정보
+  const weights = exercise.sets.map(s => s.weight).filter(w => w > 0);
+  const maxWeight = weights.length > 0 ? Math.max(...weights) : 0;
 
   const handleStart = () => {
     startTimeRef.current = Date.now();
@@ -76,14 +81,88 @@ export default function ExerciseItem({
     setTimerStatus('completed');
     onTimerStateChange(exercise.id, false);
     onTimerComplete(exercise.id, ts, finalLog);
+    // 완료 후 자동 접기
+    setIsExpanded(false);
   };
 
-  const timerColor = timerStatus === 'resting' ? 'var(--amber)' : 'var(--lime)';
+  // ─── 접힌 상태 ───────────────────────────────────────────
+  if (!isExpanded) {
+    return (
+      <div
+        className="card"
+        style={{ marginBottom: 12, cursor: 'pointer' }}
+        onClick={() => !isActive && setIsExpanded(true)}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* 토글 아이콘 */}
+          <div style={{ color: 'var(--text-3)', flexShrink: 0, lineHeight: 0 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </div>
 
+          {/* 운동 이름 */}
+          <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: exercise.name ? 'var(--text)' : 'var(--text-3)' }}>
+            {exercise.name || '운동 이름'}
+          </span>
+
+          {/* 요약 pills */}
+          <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexShrink: 0 }}>
+            <span className="pill pill-dark" style={{ fontSize: 11 }}>{exercise.sets.length}세트</span>
+            {maxWeight > 0 && (
+              <span className="pill pill-dark" style={{ fontSize: 11 }}>최대 {maxWeight}kg</span>
+            )}
+            {timerStatus === 'completed' && (
+              <span className="pill pill-lime" style={{ fontSize: 11 }}>✓ {formatTime(elapsed)}</span>
+            )}
+            {isActive && (
+              <span className={timerStatus === 'working' ? 'pill pill-lime' : 'pill pill-amber'} style={{ fontSize: 11 }}>
+                {timerStatus === 'working' ? '● 운동 중' : '● 휴식 중'}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* 타이머 진행 중일 때 접힌 상태에서도 타이머 표시 */}
+        {isActive && (
+          <div
+            style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--border-2)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+              <div className="blink" style={{ width: 8, height: 8, borderRadius: '50%', background: timerColor, flexShrink: 0 }} />
+              <span style={{ fontFamily: 'var(--ff-mono)', fontSize: 20, fontWeight: 700, color: timerColor, letterSpacing: '-0.02em', marginLeft: 'auto' }}>
+                {formatTime(elapsed)}
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {timerStatus === 'working'
+                ? <button className="btn btn-dark" style={{ flex: 1, height: 40, fontSize: 14 }} onClick={handleRest}>휴식</button>
+                : <button className="btn btn-amber" style={{ flex: 1, height: 40, fontSize: 14 }} onClick={handleResume}>운동 재개</button>
+              }
+              <button className="btn btn-lime" style={{ flex: 1, height: 40, fontSize: 14 }} onClick={handleComplete}>완료</button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ─── 펼친 상태 ───────────────────────────────────────────
   return (
     <div className="card" style={{ marginBottom: 12 }}>
       {/* 운동 이름 행 */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+        {/* 토글 (접기) 버튼 */}
+        <button
+          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--text-3)', lineHeight: 0, flexShrink: 0 }}
+          onClick={() => setIsExpanded(false)}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="18 15 12 9 6 15"/>
+          </svg>
+        </button>
+
         <input
           type="text"
           placeholder="운동 이름"
@@ -166,44 +245,31 @@ export default function ExerciseItem({
 
       {/* ─── 타이머 섹션 ─── */}
       <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--border-2)' }}>
-
-        {/* 대기 */}
         {timerStatus === 'idle' && (
           <button className="btn btn-full btn-dark" style={{ height: 44, fontSize: 15 }} onClick={handleStart}>
             운동 시작
           </button>
         )}
-
-        {/* 진행 중 / 휴식 중 */}
         {(timerStatus === 'working' || timerStatus === 'resting') && (
           <>
-            {/* 상태 + 타이머 */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
               <div className="blink" style={{ width: 8, height: 8, borderRadius: '50%', background: timerColor, flexShrink: 0 }} />
               <span className={timerStatus === 'working' ? 'pill pill-lime' : 'pill pill-amber'} style={{ fontSize: 12 }}>
                 {timerStatus === 'working' ? '운동 중' : '휴식 중'}
               </span>
-              <span style={{
-                fontFamily: 'var(--ff-mono)', fontSize: 22, fontWeight: 700,
-                color: timerColor, letterSpacing: '-0.02em', marginLeft: 'auto',
-              }}>
+              <span style={{ fontFamily: 'var(--ff-mono)', fontSize: 22, fontWeight: 700, color: timerColor, letterSpacing: '-0.02em', marginLeft: 'auto' }}>
                 {formatTime(elapsed)}
               </span>
             </div>
-
-            {/* 버튼 행 */}
             <div style={{ display: 'flex', gap: 8 }}>
-              {timerStatus === 'working' ? (
-                <button className="btn btn-dark" style={{ flex: 1, height: 44, fontSize: 14 }} onClick={handleRest}>휴식</button>
-              ) : (
-                <button className="btn btn-amber" style={{ flex: 1, height: 44, fontSize: 14 }} onClick={handleResume}>운동 재개</button>
-              )}
+              {timerStatus === 'working'
+                ? <button className="btn btn-dark" style={{ flex: 1, height: 44, fontSize: 14 }} onClick={handleRest}>휴식</button>
+                : <button className="btn btn-amber" style={{ flex: 1, height: 44, fontSize: 14 }} onClick={handleResume}>운동 재개</button>
+              }
               <button className="btn btn-lime" style={{ flex: 1, height: 44, fontSize: 14 }} onClick={handleComplete}>완료</button>
             </div>
           </>
         )}
-
-        {/* 완료 */}
         {timerStatus === 'completed' && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--lime)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
