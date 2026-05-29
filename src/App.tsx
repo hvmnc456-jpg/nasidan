@@ -7,6 +7,7 @@ import UpdateNotification from './components/UpdateNotification';
 
 import HomeTab from './screens/HomeTab';
 import DietTab from './screens/DietTab';
+import RecordsTab from './screens/RecordsTab';
 import HomeScreen from './screens/HomeScreen';
 import ExerciseListScreen from './screens/ExerciseListScreen';
 import SummaryScreen from './screens/SummaryScreen';
@@ -26,6 +27,9 @@ export default function App() {
     }
     if (appTab === 'diet') {
       return <DietTab />;
+    }
+    if (appTab === 'records') {
+      return <RecordsTab history={workout.history} />;
     }
     return (
       <>

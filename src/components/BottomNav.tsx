@@ -38,9 +38,20 @@ function IconForkKnife() {
   );
 }
 
+function IconBarChart() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="12" width="4" height="9" rx="1"/>
+      <rect x="10" y="6" width="4" height="15" rx="1"/>
+      <rect x="17" y="3" width="4" height="18" rx="1"/>
+    </svg>
+  );
+}
+
 const TABS: { id: AppTab; label: string }[] = [
   { id: 'home',    label: '홈'  },
   { id: 'workout', label: '운동' },
+  { id: 'records', label: '기록' },
   { id: 'diet',    label: '식단' },
 ];
 
@@ -58,6 +69,7 @@ export default function BottomNav({ tab, setTab, disabled }: Props) {
           >
             {t.id === 'home'    && <IconHome />}
             {t.id === 'workout' && <IconDumbbell />}
+            {t.id === 'records' && <IconBarChart />}
             {t.id === 'diet'    && <IconForkKnife />}
             <span>{t.label}</span>
           </button>
