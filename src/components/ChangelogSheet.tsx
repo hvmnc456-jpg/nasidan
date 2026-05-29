@@ -1,5 +1,10 @@
-import { useEffect } from 'react';
-import { CHANGELOG } from '../data/changelog';
+import { useState, useEffect } from 'react';
+
+interface ChangelogEntry {
+  date: string;
+  label: string;
+  items: string[];
+}
 
 interface Props {
   onClose: () => void;
@@ -14,10 +19,24 @@ function formatDate(dateStr: string): string {
 }
 
 export default function ChangelogSheet({ onClose }: Props) {
+  const [entries, setEntries] = useState<ChangelogEntry[]>([]);
+  const [status, setStatus] = useState<'loading' | 'ok' | 'error'>('loading');
+
   // 바깥 스크롤 방지
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
+  }, []);
+
+  // 항상 최신 changelog.json 로드 (캐시 무시)
+  useEffect(() => {
+    fetch('/changelog.json?t=' + Date.now(), { cache: 'no-store' })
+      .then(r => {
+        if (!r.ok) throw new Error('fetch failed');
+        return r.json() as Promise<ChangelogEntry[]>;
+      })
+      .then(data => { setEntries(data.slice(0, 5)); setStatus('ok'); })
+      .catch(() => setStatus('error'));
   }, []);
 
   return (
@@ -78,13 +97,33 @@ export default function ChangelogSheet({ onClose }: Props) {
           </button>
         </div>
 
-        {/* 내용 (스크롤) */}
+        {/* 내용 */}
         <div style={{ overflowY: 'auto', padding: '0 20px 24px', flex: 1 }}>
-          {CHANGELOG.map((entry, ei) => (
-            <div key={ei} style={{ marginBottom: ei < CHANGELOG.length - 1 ? 24 : 0 }}>
-              {/* 날짜 행 */}
+
+          {/* 로딩 */}
+          {status === 'loading' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {[1, 2, 3].map(i => (
+                <div key={i} style={{ height: 18, borderRadius: 8, background: 'var(--surface-2)', opacity: 0.6 }} />
+              ))}
+            </div>
+          )}
+
+          {/* 에러 */}
+          {status === 'error' && (
+            <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-3)', fontSize: 14 }}>
+              불러오지 못했어요. 다시 시도해 주세요.
+            </div>
+          )}
+
+          {/* 정상 */}
+          {status === 'ok' && entries.map((entry, ei) => (
+            <div key={ei} style={{ marginBottom: ei < entries.length - 1 ? 24 : 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: ei === 0 ? 'var(--lime)' : 'var(--surface-3)', flexShrink: 0 }} />
+                <div style={{
+                  width: 8, height: 8, borderRadius: '50%',
+                  background: ei === 0 ? 'var(--lime)' : 'var(--surface-3)', flexShrink: 0,
+                }} />
                 <span style={{ fontSize: 13, fontWeight: 700, color: ei === 0 ? 'var(--text)' : 'var(--text-2)' }}>
                   {formatDate(entry.date)}
                 </span>
@@ -95,7 +134,6 @@ export default function ChangelogSheet({ onClose }: Props) {
                 )}
               </div>
 
-              {/* 항목 목록 */}
               <div style={{ paddingLeft: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {entry.items.map((item, ii) => (
                   <div key={ii} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
@@ -107,8 +145,7 @@ export default function ChangelogSheet({ onClose }: Props) {
                 ))}
               </div>
 
-              {/* 구분선 */}
-              {ei < CHANGELOG.length - 1 && (
+              {ei < entries.length - 1 && (
                 <div style={{ height: 1, background: 'var(--border-2)', marginTop: 20 }} />
               )}
             </div>

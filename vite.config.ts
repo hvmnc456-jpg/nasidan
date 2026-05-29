@@ -37,6 +37,16 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
+            // changelog.json — 항상 네트워크 우선 (실시간 업데이트)
+            urlPattern: /\/changelog\.json/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'changelog-cache',
+              expiration: { maxEntries: 1, maxAgeSeconds: 60 * 60 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
             // Pretendard 폰트 (jsDelivr CDN)
             urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/.*/i,
             handler: 'CacheFirst',
