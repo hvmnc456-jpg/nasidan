@@ -127,7 +127,8 @@ export default function ExerciseItem({
   };
 
   const laps = computeLaps(lapLog, elapsed);
-  const completedSets = laps.filter(l => !l.isRest).length;
+  // isLive = 현재 진행 중 → 아직 완료된 세트가 아님
+  const completedSets = laps.filter(l => !l.isRest && !l.isLive).length;
 
   // ─── 랩 로그 테이블 ───────────────────────────
   const LapLog = ({ scrollable }: { scrollable: boolean }) => (
