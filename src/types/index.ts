@@ -8,8 +8,9 @@ export interface Exercise {
   bodyPart: string;
   name: string;
   sets: SetEntry[];
-  timerDuration?: number;   // 운동 완료 후 측정된 시간(초)
-  timerLapLog?: LapEntry[]; // 운동 완료 후 랩 로그
+  timerDuration?: number;
+  timerLapLog?: LapEntry[];
+  isFromHistory?: boolean;  // 이전 기록에서 불러온 운동 (UI 표시용)
 }
 
 export interface WorkoutSession {

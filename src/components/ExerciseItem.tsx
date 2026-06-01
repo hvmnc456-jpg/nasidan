@@ -198,6 +198,9 @@ export default function ExerciseItem({
           </span>
           <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexShrink: 0 }}>
             <span className="pill pill-dark" style={{ fontSize: 11 }}>{exercise.sets.length}세트</span>
+            {exercise.isFromHistory && timerStatus === 'idle' && (
+              <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 9999, background: 'var(--lime-bg)', color: 'var(--lime)', fontWeight: 600 }}>이전</span>
+            )}
             {timerStatus === 'completed' && (
               <span className="pill pill-lime" style={{ fontSize: 11 }}>✓ {formatTime(elapsed)}</span>
             )}
@@ -281,13 +284,16 @@ export default function ExerciseItem({
           style={{ flex: 1, fontSize: 16, fontWeight: 600, color: 'var(--text)' }}
           readOnly={isActive || timerStatus === 'completed'}
         />
-        {timerStatus === 'idle' && (
+        {timerStatus === 'idle' && (<>
+          {exercise.isFromHistory && (
+            <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 9999, background: 'var(--lime-bg)', color: 'var(--lime)', fontWeight: 600, flexShrink: 0 }}>이전</span>
+          )}
           <button className="btn-icon" onClick={() => onRemove(exercise.id)}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
           </button>
-        )}
+        </>)}
         {timerStatus === 'completed' && (
           <span className="pill pill-lime" style={{ fontSize: 11 }}>완료</span>
         )}
