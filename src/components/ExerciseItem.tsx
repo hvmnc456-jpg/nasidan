@@ -49,15 +49,18 @@ export default function ExerciseItem({
   onUpdateName, onUpdateSet, onAddSet, onRemoveSet, onRemove,
   onTimerComplete, onTimerStateChange,
 }: Props) {
-  const [isExpanded, setIsExpanded] = useState(true);
-  const [timerStatus, setTimerStatus] = useState<ExerciseTimerStatus>('idle');
-  const [elapsed, setElapsed] = useState(0);
-  const [lapLog, setLapLog] = useState<LapEntry[]>([]);
+  // 탭 전환 시 컴포넌트가 언마운트되므로, 저장된 타이머 데이터(props)로 완료 상태 복원
+  const restoredCompleted = exercise.timerDuration != null && (exercise.timerLapLog?.length ?? 0) > 0;
+
+  const [isExpanded, setIsExpanded] = useState(!restoredCompleted);
+  const [timerStatus, setTimerStatus] = useState<ExerciseTimerStatus>(restoredCompleted ? 'completed' : 'idle');
+  const [elapsed, setElapsed] = useState(restoredCompleted ? exercise.timerDuration! : 0);
+  const [lapLog, setLapLog] = useState<LapEntry[]>(restoredCompleted ? exercise.timerLapLog! : []);
 
   const startTimeRef = useRef(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const lapLogRef = useRef<LapEntry[]>([]);
-  const elapsedRef = useRef(0);
+  const lapLogRef = useRef<LapEntry[]>(restoredCompleted ? exercise.timerLapLog! : []);
+  const elapsedRef = useRef(restoredCompleted ? exercise.timerDuration! : 0);
   const lapScrollRef = useRef<HTMLDivElement>(null);
 
   // 인터벌 관리
