@@ -386,7 +386,7 @@ export default function ExerciseItem({
             </div>
 
             {/* 랩 로그 */}
-            {laps.length > 0 && <LapLog scrollable />}
+            {laps.length > 0 && LapLog({ scrollable: true })}
 
             {/* 버튼 */}
             <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
@@ -413,7 +413,7 @@ export default function ExerciseItem({
                 {formatTime(elapsed)}
               </span>
             </div>
-            {laps.length > 0 && <LapLog scrollable={false} />}
+            {laps.length > 0 && LapLog({ scrollable: false })}
           </>
         )}
       </div>
