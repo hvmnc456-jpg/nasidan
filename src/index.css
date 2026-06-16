@@ -366,6 +366,14 @@ input:-webkit-autofill {
 }
 .add-ex-btn:hover { border-color: var(--lime); color: var(--lime); }
 
+/* 항상 초록색으로 강조 (직접 추가 버튼) */
+.add-ex-btn.is-primary {
+  border-color: var(--lime);
+  color: var(--lime);
+  background: var(--lime-bg);
+}
+.add-ex-btn.is-primary:hover { border-style: solid; }
+
 /* ─── Summary stat card ─── */
 .stat-card {
   background: var(--surface);
