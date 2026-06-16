@@ -1,8 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import type { Exercise, Screen } from '../types';
 import ExerciseItem from '../components/ExerciseItem';
 
 type Templates = Record<string, string[]>;
+
+// 리마운트(탭 전환)·백그라운드 복귀 후에도 스크롤 위치를 유지하기 위해
+// 컴포넌트 외부(모듈 스코프)에 마지막 스크롤 위치를 보관
+let savedScrollTop = 0;
 
 interface Props {
   selectedBodyParts: string[];
@@ -25,18 +29,50 @@ export default function ExerciseListScreen({
   completeWorkout, setScreen,
 }: Props) {
   const [activeTab, setActiveTab] = useState(selectedBodyParts[0] ?? '');
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const currentExercises = exercises.filter(ex => ex.bodyPart === activeTab);
   const savedTemplates = templates[activeTab] ?? [];
   // 이미 추가된 종목 이름 목록 (중복 추가 방지용)
   const addedNames = new Set(currentExercises.map(e => e.name));
 
+  // 스크롤 중 위치 저장
+  const handleScroll = () => {
+    if (scrollRef.current) savedScrollTop = scrollRef.current.scrollTop;
+  };
+
+  // 마운트(탭 전환 복귀 포함) 시 저장된 위치 복원 — 페인트 전에 실행해 깜빡임 방지
+  useLayoutEffect(() => {
+    if (scrollRef.current && savedScrollTop > 0) {
+      scrollRef.current.scrollTop = savedScrollTop;
+    }
+  }, []);
+
+  // 다른 앱에 갔다가 포그라운드 복귀 시 위치 복원 (브라우저가 내부 스크롤을 리셋하는 경우 대비)
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible' || !scrollRef.current) return;
+      // 키보드 닫힘 등 레이아웃 재계산 이후 복원
+      requestAnimationFrame(() => {
+        if (scrollRef.current) scrollRef.current.scrollTop = savedScrollTop;
+      });
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, []);
+
+  // 운동 목록을 떠날 때(뒤로가기) 저장 위치 초기화
+  const handleBack = () => {
+    savedScrollTop = 0;
+    setScreen('home');
+  };
+
   return (
     <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100dvh - var(--nav-h) - env(safe-area-inset-bottom, 0px))' }}>
       {/* 헤더 */}
       <div style={{ padding: '20px 20px 0' }}>
         <div className="hdr">
-          <button className="btn-icon" onClick={() => setScreen('home')}>
+          <button className="btn-icon" onClick={handleBack}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6"/>
             </svg>
@@ -63,7 +99,7 @@ export default function ExerciseListScreen({
       </div>
 
       {/* 운동 목록 */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 16px' }}>
+      <div ref={scrollRef} onScroll={handleScroll} style={{ flex: 1, overflowY: 'auto', padding: '0 20px 16px' }}>
 
         {/* ── 저장된 종목 빠른 추가 ── */}
         {savedTemplates.length > 0 && (
