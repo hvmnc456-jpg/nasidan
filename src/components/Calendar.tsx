@@ -12,16 +12,6 @@ function toDateStr(y: number, m: number, d: number): string {
   return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 }
 
-function formatDuration(secs: number): string {
-  if (!secs || secs <= 0) return '-';
-  const h = Math.floor(secs / 3600);
-  const m = Math.floor((secs % 3600) / 60);
-  const s = secs % 60;
-  if (h > 0) return `${h}시간 ${m}분`;
-  if (m > 0) return `${m}분 ${s}초`;
-  return `${s}초`;
-}
-
 function SessionCard({ session, onDelete }: { session: WorkoutSession; onDelete: (id: string) => void }) {
   const [confirming, setConfirming] = useState(false);
   const totalVol = session.exercises.reduce((sum, e) => sum + e.sets.reduce((s2, s) => s2 + (s.weight || 0) * (s.reps || 0), 0), 0);
@@ -35,7 +25,6 @@ function SessionCard({ session, onDelete }: { session: WorkoutSession; onDelete:
           ))}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span className="pill pill-dark">{formatDuration(session.totalDuration)}</span>
           {!confirming ? (
             <button className="btn-icon" onClick={() => setConfirming(true)}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -63,21 +52,13 @@ function SessionCard({ session, onDelete }: { session: WorkoutSession; onDelete:
         ))}
       </div>
 
-      <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--border-2)', display: 'flex', gap: 12 }}>
-        <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
-          휴식 {session.lapLog ? session.lapLog.filter(l => l.type === 'rest_start').length : 0}회
-        </span>
-        {session.avgWorkTime > 0 && (
-          <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
-            평균 운동 {formatDuration(session.avgWorkTime)}
-          </span>
-        )}
-        {totalVol > 0 && (
+      {totalVol > 0 && (
+        <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--border-2)', display: 'flex' }}>
           <span style={{ fontSize: 13, color: 'var(--lime)', fontWeight: 700, marginLeft: 'auto' }}>
             {totalVol.toLocaleString('ko-KR')}kg
           </span>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

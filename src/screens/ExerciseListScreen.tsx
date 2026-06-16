@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Exercise, LapEntry, Screen } from '../types';
+import type { Exercise, Screen } from '../types';
 import ExerciseItem from '../components/ExerciseItem';
 
 type Templates = Record<string, string[]>;
@@ -15,33 +15,21 @@ interface Props {
   addSet: (id: string) => void;
   removeSet: (id: string, setIndex: number) => void;
   removeExercise: (id: string) => void;
-  updateExerciseTimer: (id: string, duration: number, lapLog: LapEntry[]) => void;
   completeWorkout: () => void;
-  onTimerChange: (isActive: boolean) => void;
   setScreen: (screen: Screen) => void;
 }
 
 export default function ExerciseListScreen({
   selectedBodyParts, exercises, templates,
   addExercise, addExerciseWithName, updateExerciseName, updateSet, addSet, removeSet, removeExercise,
-  updateExerciseTimer, completeWorkout, onTimerChange, setScreen,
+  completeWorkout, setScreen,
 }: Props) {
   const [activeTab, setActiveTab] = useState(selectedBodyParts[0] ?? '');
-  const [activeTimers, setActiveTimers] = useState(new Set<string>());
 
   const currentExercises = exercises.filter(ex => ex.bodyPart === activeTab);
   const savedTemplates = templates[activeTab] ?? [];
   // 이미 추가된 종목 이름 목록 (중복 추가 방지용)
   const addedNames = new Set(currentExercises.map(e => e.name));
-
-  const handleTimerStateChange = (exerciseId: string, isActive: boolean) => {
-    setActiveTimers(prev => {
-      const next = new Set(prev);
-      if (isActive) next.add(exerciseId); else next.delete(exerciseId);
-      onTimerChange(next.size > 0);
-      return next;
-    });
-  };
 
   return (
     <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100dvh - var(--nav-h) - env(safe-area-inset-bottom, 0px))' }}>
@@ -78,7 +66,7 @@ export default function ExerciseListScreen({
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 16px' }}>
 
         {/* ── 저장된 종목 빠른 추가 ── */}
-        {savedTemplates.length > 0 && activeTimers.size === 0 && (
+        {savedTemplates.length > 0 && (
           <div style={{ marginBottom: 16 }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>
               저장된 종목
@@ -137,30 +125,22 @@ export default function ExerciseListScreen({
             onAddSet={addSet}
             onRemoveSet={removeSet}
             onRemove={removeExercise}
-            onTimerComplete={updateExerciseTimer}
-            onTimerStateChange={handleTimerStateChange}
           />
         ))}
 
-        {/* 직접 추가 (타이머 진행 중이 아닐 때만) */}
-        {activeTimers.size === 0 && (
-          <button className="add-ex-btn" onClick={() => addExercise(activeTab)}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            직접 추가
-          </button>
-        )}
+        {/* 직접 추가 */}
+        <button className="add-ex-btn" onClick={() => addExercise(activeTab)}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          직접 추가
+        </button>
       </div>
 
       {/* 전체 운동 완료 버튼 */}
       <div style={{ padding: '12px 20px 20px', borderTop: '1px solid var(--border-2)' }}>
-        <button
-          className="btn btn-full btn-lime"
-          onClick={completeWorkout}
-          disabled={activeTimers.size > 0}
-        >
-          {activeTimers.size > 0 ? '운동 중인 항목을 먼저 완료하세요' : '운동 완료'}
+        <button className="btn btn-full btn-lime" onClick={completeWorkout}>
+          운동 완료
         </button>
       </div>
     </div>

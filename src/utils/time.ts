@@ -1,10 +1,3 @@
-export function formatTime(totalSeconds: number): string {
-  const h = Math.floor(totalSeconds / 3600);
-  const m = Math.floor((totalSeconds % 3600) / 60);
-  const s = totalSeconds % 60;
-  return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
-}
-
 export function formatDate(date: Date): string {
   const days = ['일', '월', '화', '수', '목', '금', '토'];
   const year = date.getFullYear();

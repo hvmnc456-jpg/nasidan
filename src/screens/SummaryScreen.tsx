@@ -13,14 +13,6 @@ interface Props {
 
 const DAYS_KR = ['일', '월', '화', '수', '목', '금', '토'];
 
-function fmtDur(s: number): string {
-  if (!s || s <= 0) return '-';
-  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
-  if (h > 0) return `${h}시간 ${m}분`;
-  if (m > 0) return `${m}분 ${sec}초`;
-  return `${sec}초`;
-}
-
 function exVolume(e: WorkoutSession['exercises'][number]): number {
   return e.sets.reduce((sum, s) => sum + (s.weight || 0) * (s.reps || 0), 0);
 }
@@ -29,7 +21,6 @@ export default function SummaryScreen({ session, templates, onUpdateTemplates, r
   const [y, m, d] = session.date.split('-').map(Number);
   const dow = DAYS_KR[new Date(y, m - 1, d).getDay()];
   const dateShort = `${m}월 ${d}일 (${dow})`;
-  const restCount = session.lapLog.filter(l => l.type === 'rest_start').length;
   const totalVol = session.exercises.reduce((sum, e) => sum + exVolume(e), 0);
 
   const partGroups: Record<string, typeof session.exercises> = {};
@@ -72,16 +63,8 @@ export default function SummaryScreen({ session, templates, onUpdateTemplates, r
       {/* 통계 그리드 */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
         <div className="stat-card">
-          <div className="stat-val">{fmtDur(session.totalDuration)}</div>
-          <div className="stat-lbl">총 운동 시간</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-val">{session.exercises.filter(e => e.timerDuration).length}개</div>
-          <div className="stat-lbl">타이머 사용 운동</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-val">{restCount}회</div>
-          <div className="stat-lbl">총 휴식 횟수</div>
+          <div className="stat-val">{session.exercises.filter(e => e.name.trim()).length}개</div>
+          <div className="stat-lbl">총 운동 종목</div>
         </div>
         <div className="stat-card">
           <div className="stat-val">{session.exercises.reduce((sum, e) => sum + e.sets.length, 0)}세트</div>

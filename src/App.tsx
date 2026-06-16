@@ -25,7 +25,6 @@ function loadTemplates(): Templates {
 
 export default function App() {
   const [appTab, setAppTab] = useState<AppTab>('home');
-  const [isTimerActive, setIsTimerActive] = useState(false);
   const [templates, setTemplates] = useState<Templates>(() => loadTemplates());
 
   const workout = useWorkout();
@@ -72,9 +71,7 @@ export default function App() {
             addSet={workout.addSet}
             removeSet={workout.removeSet}
             removeExercise={workout.removeExercise}
-            updateExerciseTimer={workout.updateExerciseTimer}
             completeWorkout={workout.completeWorkout}
-            onTimerChange={setIsTimerActive}
             setScreen={workout.setScreen}
           />
         )}
@@ -108,11 +105,7 @@ export default function App() {
       </div>
       <BottomNav
         tab={appTab}
-        setTab={tab => {
-          if (isTimerActive) return;
-          setAppTab(tab);
-        }}
-        disabled={isTimerActive}
+        setTab={setAppTab}
       />
       <UpdateNotification />
     </div>

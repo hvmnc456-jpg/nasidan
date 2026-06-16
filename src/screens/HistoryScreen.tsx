@@ -10,14 +10,6 @@ interface Props {
 
 const DAYS_KR = ['일', '월', '화', '수', '목', '금', '토'];
 
-function fmtDur(s: number): string {
-  if (!s || s <= 0) return '-';
-  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
-  if (h > 0) return `${h}시간 ${m}분`;
-  if (m > 0) return `${m}분 ${sec}초`;
-  return `${sec}초`;
-}
-
 function SessionCard({ session, onDelete }: { session: WorkoutSession; onDelete: () => void }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [y, m, d] = session.date.split('-').map(Number);
@@ -36,7 +28,6 @@ function SessionCard({ session, onDelete }: { session: WorkoutSession; onDelete:
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span className="pill pill-dark">{fmtDur(session.totalDuration)}</span>
           {!isDeleting ? (
             <button className="btn-icon" onClick={() => setIsDeleting(true)}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -65,22 +56,13 @@ function SessionCard({ session, onDelete }: { session: WorkoutSession; onDelete:
       </div>
 
       {/* 통계 */}
-      <div style={{ paddingTop: 8, borderTop: '1px solid var(--border-2)', display: 'flex', gap: 12, alignItems: 'center' }}>
-        <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
-          휴식 {session.lapLog ? session.lapLog.filter(l => l.type === 'rest_start').length : 0}회
-        </span>
-        {session.avgWorkTime > 0 && (
-          <span style={{ fontSize: 12, color: 'var(--text-3)' }}>평균 운동 {fmtDur(session.avgWorkTime)}</span>
-        )}
-        {session.avgRestTime > 0 && (
-          <span style={{ fontSize: 12, color: 'var(--text-3)' }}>평균 휴식 {fmtDur(session.avgRestTime)}</span>
-        )}
-        {vol > 0 && (
+      {vol > 0 && (
+        <div style={{ paddingTop: 8, borderTop: '1px solid var(--border-2)', display: 'flex', alignItems: 'center' }}>
           <span style={{ fontSize: 13, color: 'var(--lime)', fontWeight: 700, marginLeft: 'auto' }}>
             {vol.toLocaleString('ko-KR')}kg
           </span>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

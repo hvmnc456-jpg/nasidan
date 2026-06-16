@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { Screen, Exercise, SetEntry, LapEntry, WorkoutSession } from '../types';
+import type { Screen, Exercise, SetEntry, WorkoutSession } from '../types';
 import { todayString } from '../utils/time';
 
 function genId(): string {
@@ -42,21 +42,6 @@ function loadHistory(): WorkoutSession[] {
 function saveSession(session: WorkoutSession): void {
   const history = loadHistory();
   localStorage.setItem('workout-history', JSON.stringify([session, ...history]));
-}
-
-function calcStats(lapLog: LapEntry[]): { avgWorkTime: number; avgRestTime: number } {
-  let totalWork = 0, totalRest = 0, workCount = 0, restCount = 0;
-  for (let i = 0; i < lapLog.length - 1; i++) {
-    const cur = lapLog[i], next = lapLog[i + 1];
-    if (!cur || !next) continue;
-    const dur = next.timestamp - cur.timestamp;
-    if (cur.type === 'workout_start' || cur.type === 'workout_resume') { totalWork += dur; workCount++; }
-    else if (cur.type === 'rest_start') { totalRest += dur; restCount++; }
-  }
-  return {
-    avgWorkTime: workCount > 0 ? Math.round(totalWork / workCount) : 0,
-    avgRestTime: restCount > 0 ? Math.round(totalRest / restCount) : 0,
-  };
 }
 
 export function useWorkout() {
@@ -123,30 +108,13 @@ export function useWorkout() {
     }));
   }, []);
 
-  // 운동별 타이머 완료 시 호출 → exercise에 시간/랩 저장
-  const updateExerciseTimer = useCallback((id: string, duration: number, lapLog: LapEntry[]) => {
-    setExercises(prev => prev.map(ex =>
-      ex.id === id ? { ...ex, timerDuration: duration, timerLapLog: lapLog } : ex
-    ));
-  }, []);
-
-  // 전체 운동 완료 — 각 운동의 타이머 데이터를 집계해 세션 저장
+  // 전체 운동 완료 — 세션 저장
   const completeWorkout = useCallback(() => {
-    const allLapLogs: LapEntry[] = [];
-    exercises.forEach(e => { if (e.timerLapLog?.length) allLapLogs.push(...e.timerLapLog); });
-
-    const totalDuration = exercises.reduce((sum, e) => sum + (e.timerDuration ?? 0), 0);
-    const stats = calcStats(allLapLogs);
-
     const session: WorkoutSession = {
       id: genId(),
       date: todayString(),
       bodyParts: selectedBodyParts,
       exercises,
-      lapLog: allLapLogs,
-      totalDuration,
-      avgWorkTime: stats.avgWorkTime,
-      avgRestTime: stats.avgRestTime,
     };
 
     saveSession(session);
@@ -175,7 +143,6 @@ export function useWorkout() {
     exercises,
     addExercise, addExerciseWithName, updateExerciseName, removeExercise,
     addSet, removeSet, updateSet,
-    updateExerciseTimer,
     completedSession, history,
     goToExercises, completeWorkout,
     resetWorkout, deleteSession,
