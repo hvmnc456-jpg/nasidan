@@ -10,23 +10,6 @@ function defaultSets(count = 3): SetEntry[] {
   return Array.from({ length: count }, () => ({ weight: 0, reps: 10 }));
 }
 
-// 특정 부위의 직전 세션 운동 목록 반환 (가장 최근 세션 기준)
-function getLastExercisesForPart(history: WorkoutSession[], bodyPart: string): Exercise[] {
-  for (const session of history) {
-    const exs = session.exercises.filter(e => e.bodyPart === bodyPart && e.name.trim());
-    if (exs.length > 0) {
-      return exs.map(e => ({
-        id: genId(),
-        bodyPart: e.bodyPart,
-        name: e.name,
-        sets: e.sets.map(s => ({ weight: s.weight, reps: s.reps })),
-        isFromHistory: true,
-      }));
-    }
-  }
-  return [];
-}
-
 // 특정 부위+종목명의 직전 세트 데이터 반환 (전체 히스토리 검색)
 function getLastSetsForExercise(history: WorkoutSession[], bodyPart: string, name: string): SetEntry[] {
   for (const session of history) {
@@ -101,14 +84,10 @@ export function useWorkout() {
   }, []);
 
   const goToExercises = useCallback(() => {
-    // 선택된 부위별 직전 세션 운동을 미리 로드
-    const prev: Exercise[] = [];
-    for (const part of selectedBodyParts) {
-      prev.push(...getLastExercisesForPart(history, part));
-    }
-    if (prev.length > 0) setExercises(prev);
+    // 부위 선택 시 직전 세션 운동 자동 불러오기 제거 — 항상 빈 목록으로 시작
+    setExercises([]);
     setScreen('exercises');
-  }, [selectedBodyParts, history]);
+  }, []);
 
   const addExercise = useCallback((bodyPart: string) => {
     setExercises(prev => [
