@@ -6,8 +6,9 @@
   --font-mono: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
 }
 
-/* ─── CSS Design Tokens ─── */
+/* ─── CSS Design Tokens (기본: 다크 모드) ─── */
 :root {
+  --app-bg:     #000000;
   --bg:         #09090b;
   --surface:    #18181b;
   --surface-2:  #27272a;
@@ -33,6 +34,29 @@
   --sar: env(safe-area-inset-right,  0px);
 }
 
+/* ─── 라이트 모드 (다크모드 OFF) ─── */
+:root.light {
+  --app-bg:     #e4e4e7;
+  --bg:         #f4f4f5;
+  --surface:    #ffffff;
+  --surface-2:  #ededf0;
+  --surface-3:  #d4d4d8;
+  --border:     rgba(24, 24, 27, 0.12);
+  --border-2:   rgba(24, 24, 27, 0.07);
+  --lime:       #65a30d;
+  --lime-bg:    rgba(101, 163, 13, 0.14);
+  --lime-text:  #ffffff;
+  --amber:      #d97706;
+  --amber-bg:   rgba(217, 119, 6, 0.14);
+  --red:        #dc2626;
+  --red-bg:     rgba(220, 38, 38, 0.10);
+  --text:       #18181b;
+  --text-2:     #52525b;
+  --text-3:     #a1a1aa;
+}
+/* 라이트 모드에서 카드에 옅은 그림자로 입체감 */
+:root.light .card { box-shadow: 0 1px 3px rgba(24, 24, 27, 0.06); }
+
 /* ─── Reset ─── */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -48,7 +72,7 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  background: #000;
+  background: var(--app-bg);
   color: var(--text);
   font-family: var(--ff);
   font-weight: 400;
@@ -58,7 +82,7 @@ html, body {
 }
 
 html, body, #root {
-  background: #000;
+  background: var(--app-bg);
 }
 
 /* ─── App Shell ─── */
@@ -166,8 +190,8 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 input::placeholder { color: var(--text-3); }
 
 input:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0 1000px #27272a inset;
-  -webkit-text-fill-color: #fafafa;
+  -webkit-box-shadow: 0 0 0 1000px var(--surface-2) inset;
+  -webkit-text-fill-color: var(--text);
 }
 
 /* ─── Buttons ─── */
@@ -373,6 +397,33 @@ input:-webkit-autofill {
   background: var(--lime-bg);
 }
 .add-ex-btn.is-primary:hover { border-style: solid; }
+
+/* ─── Toggle switch (설정) ─── */
+.toggle {
+  width: 48px;
+  height: 28px;
+  border-radius: 9999px;
+  background: var(--surface-3);
+  border: none;
+  padding: 0;
+  position: relative;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.toggle.on { background: var(--lime); }
+.toggle-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s;
+}
+.toggle.on .toggle-knob { transform: translateX(20px); }
 
 /* ─── Summary stat card ─── */
 .stat-card {

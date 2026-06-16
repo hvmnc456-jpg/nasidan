@@ -36,6 +36,20 @@
     <meta name="msapplication-TileImage" content="/pwa-192x192.png" />
 
     <title>나.시.단</title>
+
+    <!-- 저장된 테마를 첫 페인트 전에 적용 (라이트 모드 깜빡임 방지) -->
+    <script>
+      (function () {
+        try {
+          var light = localStorage.getItem('theme') === 'light';
+          if (light) document.documentElement.classList.add('light');
+          var tc = document.querySelector('meta[name="theme-color"]');
+          if (tc) tc.setAttribute('content', light ? '#f4f4f5' : '#09090b');
+          var cs = document.querySelector('meta[name="color-scheme"]');
+          if (cs) cs.setAttribute('content', light ? 'light' : 'dark');
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

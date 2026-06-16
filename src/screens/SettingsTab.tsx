@@ -6,9 +6,11 @@ type Templates = Record<string, string[]>;
 interface Props {
   templates: Templates;
   onUpdate: (templates: Templates) => void;
+  darkMode: boolean;
+  onToggleDarkMode: () => void;
 }
 
-export default function SettingsTab({ templates, onUpdate }: Props) {
+export default function SettingsTab({ templates, onUpdate, darkMode, onToggleDarkMode }: Props) {
   const [activeTab, setActiveTab] = useState<string>(BODY_PARTS[0]);
   const [inputValue, setInputValue] = useState('');
 
@@ -40,8 +42,30 @@ export default function SettingsTab({ templates, onUpdate }: Props) {
         <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 6 }}>설정</div>
       </div>
 
-      {/* 섹션 타이틀 */}
+      {/* 화면 테마 */}
       <div style={{ padding: '20px 20px 0' }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 12 }}>화면</div>
+        <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>다크 모드</div>
+            <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 3 }}>
+              {darkMode ? '어두운 배경으로 표시 중' : '밝은 배경으로 표시 중'}
+            </div>
+          </div>
+          <button
+            role="switch"
+            aria-checked={darkMode}
+            aria-label="다크 모드"
+            className={`toggle${darkMode ? ' on' : ''}`}
+            onClick={onToggleDarkMode}
+          >
+            <span className="toggle-knob" />
+          </button>
+        </div>
+      </div>
+
+      {/* 섹션 타이틀 */}
+      <div style={{ padding: '24px 20px 0' }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>운동 종목 관리</div>
         <div style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 16 }}>
           부위별 운동 종목을 미리 등록하면 운동 탭에서 빠르게 선택할 수 있어요.

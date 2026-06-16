@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useWorkout } from './hooks/useWorkout';
 import type { AppTab } from './types';
 
@@ -23,9 +23,22 @@ function loadTemplates(): Templates {
   } catch { return {}; }
 }
 
+// 기본값은 다크 모드. localStorage 'theme'이 'light'일 때만 라이트 모드
+function loadDarkMode(): boolean {
+  return localStorage.getItem('theme') !== 'light';
+}
+
 export default function App() {
   const [appTab, setAppTab] = useState<AppTab>('home');
   const [templates, setTemplates] = useState<Templates>(() => loadTemplates());
+  const [darkMode, setDarkMode] = useState<boolean>(() => loadDarkMode());
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('light', !darkMode);
+    localStorage.setItem('theme', darkMode ? 'dark' : 'light');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', darkMode ? '#09090b' : '#f4f4f5');
+    document.querySelector('meta[name="color-scheme"]')?.setAttribute('content', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
 
   const workout = useWorkout();
   const { screen, completedSession } = workout;
@@ -48,7 +61,14 @@ export default function App() {
       return <RecordsTab history={workout.history} />;
     }
     if (appTab === 'settings') {
-      return <SettingsTab templates={templates} onUpdate={handleTemplatesUpdate} />;
+      return (
+        <SettingsTab
+          templates={templates}
+          onUpdate={handleTemplatesUpdate}
+          darkMode={darkMode}
+          onToggleDarkMode={() => setDarkMode(v => !v)}
+        />
+      );
     }
     return (
       <>
