@@ -19,6 +19,8 @@ interface Props {
   addSet: (id: string) => void;
   removeSet: (id: string, setIndex: number) => void;
   removeExercise: (id: string) => void;
+  toggleExpanded: (id: string) => void;
+  toggleDone: (id: string) => void;
   completeWorkout: () => void;
   setScreen: (screen: Screen) => void;
 }
@@ -26,7 +28,7 @@ interface Props {
 export default function ExerciseListScreen({
   selectedBodyParts, exercises, templates,
   addExercise, addExerciseWithName, updateExerciseName, updateSet, addSet, removeSet, removeExercise,
-  completeWorkout, setScreen,
+  toggleExpanded, toggleDone, completeWorkout, setScreen,
 }: Props) {
   const [activeTab, setActiveTab] = useState(selectedBodyParts[0] ?? '');
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -161,6 +163,8 @@ export default function ExerciseListScreen({
             onAddSet={addSet}
             onRemoveSet={removeSet}
             onRemove={removeExercise}
+            onToggleExpanded={toggleExpanded}
+            onToggleDone={toggleDone}
           />
         ))}
 

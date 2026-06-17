@@ -66,7 +66,7 @@ export function useWorkout() {
   const addExercise = useCallback((bodyPart: string) => {
     setExercises(prev => [
       ...prev,
-      { id: genId(), bodyPart, name: '', sets: defaultSets(3) },
+      { id: genId(), bodyPart, name: '', sets: defaultSets(3), expanded: true, done: false },
     ]);
   }, []);
 
@@ -74,12 +74,26 @@ export function useWorkout() {
   const addExerciseWithName = useCallback((bodyPart: string, name: string) => {
     setExercises(prev => [
       ...prev,
-      { id: genId(), bodyPart, name, sets: defaultSets(3) },
+      { id: genId(), bodyPart, name, sets: defaultSets(3), expanded: true, done: false },
     ]);
   }, []);
 
   const updateExerciseName = useCallback((id: string, name: string) => {
     setExercises(prev => prev.map(ex => ex.id === id ? { ...ex, name } : ex));
+  }, []);
+
+  // 카드 펼침/접힘 토글 — 상태가 exercises 배열에 저장돼 탭/앱 전환에도 유지됨
+  const toggleExpanded = useCallback((id: string) => {
+    setExercises(prev => prev.map(ex => ex.id === id ? { ...ex, expanded: !(ex.expanded !== false) } : ex));
+  }, []);
+
+  // 운동 완료 토글 — 완료 시 접고(expanded:false) 다시 펼치지 않음, 되돌리면 펼침
+  const toggleDone = useCallback((id: string) => {
+    setExercises(prev => prev.map(ex => {
+      if (ex.id !== id) return ex;
+      const nextDone = !ex.done;
+      return { ...ex, done: nextDone, expanded: nextDone ? false : true };
+    }));
   }, []);
 
   const removeExercise = useCallback((id: string) => {
@@ -114,7 +128,10 @@ export function useWorkout() {
       id: genId(),
       date: todayString(),
       bodyParts: selectedBodyParts,
-      exercises,
+      // UI 상태(expanded/done)는 기록에 저장하지 않음
+      exercises: exercises.map(ex => ({
+        id: ex.id, bodyPart: ex.bodyPart, name: ex.name, sets: ex.sets,
+      })),
     };
 
     saveSession(session);
@@ -142,6 +159,7 @@ export function useWorkout() {
     selectedBodyParts, toggleBodyPart,
     exercises,
     addExercise, addExerciseWithName, updateExerciseName, removeExercise,
+    toggleExpanded, toggleDone,
     addSet, removeSet, updateSet,
     completedSession, history,
     goToExercises, completeWorkout,

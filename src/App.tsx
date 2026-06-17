@@ -91,6 +91,8 @@ export default function App() {
             addSet={workout.addSet}
             removeSet={workout.removeSet}
             removeExercise={workout.removeExercise}
+            toggleExpanded={workout.toggleExpanded}
+            toggleDone={workout.toggleDone}
             completeWorkout={workout.completeWorkout}
             setScreen={workout.setScreen}
           />

@@ -8,6 +8,8 @@ export interface Exercise {
   bodyPart: string;
   name: string;
   sets: SetEntry[];
+  expanded?: boolean; // 카드 펼침 여부 (기본 true) — 탭/앱 전환에도 유지
+  done?: boolean;     // 운동 완료 여부 — 완료 시 펼치지 않음
 }
 
 export interface WorkoutSession {
